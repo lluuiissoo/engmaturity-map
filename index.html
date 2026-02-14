@@ -187,6 +187,10 @@
     .badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
     .badge-type { background: var(--accent-dim); color: var(--accent); }
     .badge-team { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+    .badge-tier { font-weight: 700; }
+    .badge-tier-1 { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .badge-tier-2 { background: rgba(249,115,22,0.15); color: #f97316; }
+    .badge-tier-3 { background: rgba(234,179,8,0.15); color: #eab308; }
 
     .avg-score { font-size: 12px; color: var(--text-muted); }
     .avg-score strong { color: var(--text); font-size: 14px; }
@@ -263,7 +267,7 @@
       border-radius: 8px;
       padding: 10px 16px;
       display: grid;
-      grid-template-columns: 180px 140px 120px 1fr 70px;
+      grid-template-columns: 180px 40px 140px 120px 1fr 70px;
       align-items: center;
       gap: 12px;
       font-size: 13px;
@@ -381,6 +385,14 @@
     <label>Team</label>
     <select id="filter-team"><option value="all">All Teams</option></select>
 
+    <label>Tier</label>
+    <select id="filter-tier">
+      <option value="all">All Tiers</option>
+      <option value="1">Tier 1 — Critical</option>
+      <option value="2">Tier 2 — Important</option>
+      <option value="3">Tier 3 — Low-risk</option>
+    </select>
+
     <label>Search</label>
     <input type="text" id="filter-search" placeholder="Filter repos...">
 
@@ -412,6 +424,10 @@
   <div class="legend-item"><div class="legend-swatch" style="background:var(--level3)"></div> 3 Defined</div>
   <div class="legend-item"><div class="legend-swatch" style="background:var(--level4)"></div> 4 Managed</div>
   <div class="legend-item"><div class="legend-swatch" style="background:var(--level5)"></div> 5 Optimized</div>
+  <span style="color:var(--border)">|</span>
+  <div class="legend-item"><div class="legend-swatch" style="background:#ef4444"></div> Tier 1 Critical</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#f97316"></div> Tier 2 Important</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#eab308"></div> Tier 3 Low-risk</div>
 </div>
 
 <div class="stats-bar" id="stats-bar"></div>
@@ -447,13 +463,19 @@ function gapColor(gap) {
   return 'var(--gap-none)';
 }
 
+function tierBadge(tier) {
+  return `<span class="badge badge-tier badge-tier-${tier}">T${tier}</span>`;
+}
+
 function getFiltered() {
   const type = document.getElementById('filter-type').value;
   const team = document.getElementById('filter-team').value;
+  const tier = document.getElementById('filter-tier').value;
   const search = document.getElementById('filter-search').value.toLowerCase();
   return repos.filter(r =>
     (type === 'all' || r.type === type) &&
     (team === 'all' || r.team === team) &&
+    (tier === 'all' || r.tier === parseInt(tier)) &&
     (search === '' || r.name.toLowerCase().includes(search))
   );
 }
@@ -496,6 +518,9 @@ function renderStats(filtered) {
   const avgTar = (filtered.reduce((s, r) => s + overallScore(r.target), 0) / n).toFixed(1);
   const avgGap = (avgTar - avgCur).toFixed(1);
   const critical = filtered.filter(r => overallScore(r.current) < 2).length;
+  const t1 = filtered.filter(r => r.tier === 1).length;
+  const t2 = filtered.filter(r => r.tier === 2).length;
+  const t3 = filtered.filter(r => r.tier === 3).length;
 
   // Per-dimension avg
   const dimStats = DIMENSIONS.map(d => {
@@ -509,6 +534,9 @@ function renderStats(filtered) {
     <div class="stat"><span class="stat-value">${avgTar}</span><span class="stat-label">Avg Target</span></div>
     <div class="stat"><span class="stat-value">${avgGap}</span><span class="stat-label">Avg Gap</span></div>
     <div class="stat"><span class="stat-value" style="color:${critical > 0 ? 'var(--level1)' : 'var(--level4)'}">${critical}</span><span class="stat-label">Critical</span></div>
+    <div class="stat"><span class="stat-value" style="color:#ef4444">${t1}</span><span class="stat-label">Tier 1</span></div>
+    <div class="stat"><span class="stat-value" style="color:#f97316">${t2}</span><span class="stat-label">Tier 2</span></div>
+    <div class="stat"><span class="stat-value" style="color:#eab308">${t3}</span><span class="stat-label">Tier 3</span></div>
     ${dimStats}
   `;
 }
@@ -581,6 +609,7 @@ function renderRadarView(filtered) {
         <div>
           <div class="radar-card-title">${repo.name}</div>
           <div class="radar-card-meta">
+            ${tierBadge(repo.tier)}
             <span class="badge badge-type">${repo.type}</span>
             <span class="badge badge-team">${repo.team}</span>
           </div>
@@ -689,6 +718,7 @@ function renderHeatmapView(filtered) {
         }).join('');
         return `<tr>
           <td class="repo-name-cell">${repo.name}</td>
+          <td class="repo-type-cell">${tierBadge(repo.tier)}</td>
           <td class="repo-type-cell">${repo.type}</td>
           <td class="repo-type-cell">${repo.team}</td>
           <td style="font-weight:600;color:${levelColor(overallScore(repo.current))}">${overallScore(repo.current).toFixed(1)}</td>
@@ -697,7 +727,7 @@ function renderHeatmapView(filtered) {
       }).join('');
 
     container.innerHTML = `<table class="heatmap-table">
-      <thead><tr><th>Repo</th><th>Type</th><th>Team</th><th>Avg</th>${dimHeaders}</tr></thead>
+      <thead><tr><th>Repo</th><th>Tier</th><th>Type</th><th>Team</th><th>Avg</th>${dimHeaders}</tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
   } else {
@@ -729,6 +759,7 @@ function renderHeatmapView(filtered) {
 
         return `<tr>
           <td class="repo-name-cell">${repo.name}</td>
+          <td class="repo-type-cell">${tierBadge(repo.tier)}</td>
           <td class="repo-type-cell">${repo.type}</td>
           <td class="repo-type-cell">${repo.team}</td>
           <td style="font-weight:600;color:${levelColor(overallScore(repo.current))}">${overallScore(repo.current).toFixed(1)}</td>
@@ -738,7 +769,7 @@ function renderHeatmapView(filtered) {
 
     container.innerHTML = `<table class="heatmap-table">
       <thead>
-        <tr><th rowspan="2">Repo</th><th rowspan="2">Type</th><th rowspan="2">Team</th><th rowspan="2">Avg</th>${groupHeaders}</tr>
+        <tr><th rowspan="2">Repo</th><th rowspan="2">Tier</th><th rowspan="2">Type</th><th rowspan="2">Team</th><th rowspan="2">Avg</th>${groupHeaders}</tr>
         <tr>${subHeaders}</tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -758,7 +789,7 @@ function renderGapView(filtered) {
         const tar = dimScore(repo.target, d);
         const gap = tar - cur;
         if (gap > 0.1) {
-          gaps.push({ repo: repo.name, type: repo.type, dim: d.label, sub: '', current: cur, target: tar, gap });
+          gaps.push({ repo: repo.name, type: repo.type, tier: repo.tier, dim: d.label, sub: '', current: cur, target: tar, gap });
         }
       });
     });
@@ -772,7 +803,7 @@ function renderGapView(filtered) {
           const tar = repo.target[s.key] || 0;
           const gap = tar - cur;
           if (gap > 0) {
-            gaps.push({ repo: repo.name, type: repo.type, dim: d.label, sub: s.label, current: cur, target: tar, gap });
+            gaps.push({ repo: repo.name, type: repo.type, tier: repo.tier, dim: d.label, sub: s.label, current: cur, target: tar, gap });
           }
         });
       });
@@ -784,6 +815,7 @@ function renderGapView(filtered) {
   list.innerHTML = gaps.slice(0, 150).map(g => `
     <div class="gap-row">
       <div class="gap-row-repo">${g.repo} <span style="font-weight:400;color:var(--text-muted);font-size:11px">${g.type}</span></div>
+      <div>${tierBadge(g.tier)}</div>
       <div class="gap-row-dim">${g.dim}</div>
       <div class="gap-row-sub">${g.sub}</div>
       <div>
@@ -832,6 +864,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
 document.querySelectorAll('.depth-btn').forEach(b => b.addEventListener('click', () => setDepth(b.dataset.depth)));
 document.getElementById('filter-type').addEventListener('change', renderCurrentView);
 document.getElementById('filter-team').addEventListener('change', renderCurrentView);
+document.getElementById('filter-tier').addEventListener('change', renderCurrentView);
 document.getElementById('filter-search').addEventListener('input', renderCurrentView);
 document.getElementById('filter-dimension').addEventListener('change', renderCurrentView);
 

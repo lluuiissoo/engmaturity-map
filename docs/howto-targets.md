@@ -11,3 +11,7 @@ Set a floor across the board (e.g., nothing below 3 on Security, nothing below 2
 
 4. Gap-driven / pain-driven
 Look at where incidents are happening, where deployments are painful, where security is flagging issues — and set targets specifically where it hurts. No need to push Documentation to 5 if nobody's struggling with it.
+
+---
+Selected option: go with option 2 (tiered by criticality) combined with option 3 (org minimums). Define 3 tiers, set minimum floors, and you get a target matrix that's maybe 30 cells instead of 2,968 (106 repos x 28 sub-dimensions).
+
