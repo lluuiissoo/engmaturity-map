@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Maturity Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="data.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242836;
+      --border: #2e3348;
+      --text: #e1e4ed;
+      --text-muted: #8b90a0;
+      --accent: #6c8cff;
+      --accent-dim: rgba(108,140,255,0.15);
+      --target: rgba(255,170,50,0.6);
+      --target-fill: rgba(255,170,50,0.08);
+      --current: rgba(108,140,255,0.8);
+      --current-fill: rgba(108,140,255,0.15);
+      --level1: #ef4444;
+      --level2: #f97316;
+      --level3: #eab308;
+      --level4: #22c55e;
+      --level5: #06b6d4;
+      --gap-high: #ef4444;
+      --gap-med: #f97316;
+      --gap-low: #eab308;
+      --gap-none: #22c55e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filters label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    select, input[type="text"] {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    select:focus, input:focus { border-color: var(--accent); }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .tab {
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .stats-bar {
+      display: flex;
+      gap: 24px;
+      padding: 16px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    main { padding: 24px 32px; }
+
+    /* --- Radar View --- */
+    #radar-view .radar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .radar-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .radar-card:hover { border-color: var(--accent); }
+
+    .radar-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .radar-card-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .radar-card-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .badge-type {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .badge-team {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+    }
+
+    .avg-score {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .avg-score strong {
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    /* --- Heatmap View --- */
+    #heatmap-view { overflow-x: auto; }
+
+    .heatmap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .heatmap-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .heatmap-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .heatmap-table tr:hover td { background: var(--surface2); }
+
+    .heatmap-cell {
+      width: 80px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .heatmap-cell .gap-indicator {
+      font-size: 10px;
+      font-weight: 400;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .repo-name-cell {
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .repo-type-cell {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* --- Gap Analysis View --- */
+    #gap-view .gap-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .gap-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 200px 120px 1fr 80px;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .gap-row-repo { font-weight: 600; font-size: 14px; }
+    .gap-row-dim { color: var(--text-muted); font-size: 13px; }
+
+    .gap-bar-track {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .gap-bar-current {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .gap-bar-target {
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: 14px;
+      background: var(--target);
+      border-radius: 1px;
+    }
+
+    .gap-score {
+      text-align: right;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    /* --- Aggregate Radar View --- */
+    #aggregate-view .agg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 24px;
+    }
+
+    .agg-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .agg-card h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .agg-card .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      padding: 12px 32px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .sort-select { margin-left: 8px; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Engineering Maturity Dashboard</h1>
+  <div class="filters">
+    <label>Type</label>
+    <select id="filter-type">
+      <option value="all">All Types</option>
+    </select>
+
+    <label>Team</label>
+    <select id="filter-team">
+      <option value="all">All Teams</option>
+    </select>
+
+    <label>Search</label>
+    <input type="text" id="filter-search" placeholder="Filter repos...">
+
+    <div class="tabs">
+      <button class="tab active" data-view="radar">Radar</button>
+      <button class="tab" data-view="aggregate">By Type</button>
+      <button class="tab" data-view="heatmap">Heatmap</button>
+      <button class="tab" data-view="gap">Gap Analysis</button>
+    </div>
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--current)"></div> Current State</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--target)"></div> Target State</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--level1)"></div> 1 Ad-hoc</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--level2)"></div> 2 Basic</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--level3)"></div> 3 Defined</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--level4)"></div> 4 Managed</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--level5)"></div> 5 Optimized</div>
+</div>
+
+<div class="stats-bar" id="stats-bar"></div>
+
+<main>
+  <div id="radar-view"><div class="radar-grid" id="radar-grid"></div></div>
+  <div id="aggregate-view" class="hidden"><div class="agg-grid" id="agg-grid"></div></div>
+  <div id="heatmap-view" class="hidden"></div>
+  <div id="gap-view" class="hidden"><div class="gap-list" id="gap-list"></div></div>
+</main>
+
+<script>
+// ---- Utility Functions ----
+function avg(obj) {
+  const vals = Object.values(obj);
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function levelColor(val) {
+  if (val <= 1) return 'var(--level1)';
+  if (val <= 2) return 'var(--level2)';
+  if (val <= 3) return 'var(--level3)';
+  if (val <= 4) return 'var(--level4)';
+  return 'var(--level5)';
+}
+
+function gapColor(gap) {
+  if (gap >= 3) return 'var(--gap-high)';
+  if (gap >= 2) return 'var(--gap-med)';
+  if (gap >= 1) return 'var(--gap-low)';
+  return 'var(--gap-none)';
+}
+
+function getFiltered() {
+  const type = document.getElementById('filter-type').value;
+  const team = document.getElementById('filter-team').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  return repos.filter(r =>
+    (type === 'all' || r.type === type) &&
+    (team === 'all' || r.team === team) &&
+    (search === '' || r.name.toLowerCase().includes(search))
+  );
+}
+
+// ---- Populate Filters ----
+function initFilters() {
+  const types = [...new Set(repos.map(r => r.type))].sort();
+  const teams = [...new Set(repos.map(r => r.team))].sort();
+  const typeSelect = document.getElementById('filter-type');
+  const teamSelect = document.getElementById('filter-team');
+
+  types.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    typeSelect.appendChild(opt);
+  });
+
+  teams.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    teamSelect.appendChild(opt);
+  });
+}
+
+// ---- Stats Bar ----
+function renderStats(filtered) {
+  const bar = document.getElementById('stats-bar');
+  const totalRepos = filtered.length;
+  const avgCurrent = (filtered.reduce((s, r) => s + avg(r.current), 0) / totalRepos || 0).toFixed(1);
+  const avgTarget = (filtered.reduce((s, r) => s + avg(r.target), 0) / totalRepos || 0).toFixed(1);
+  const avgGap = (avgTarget - avgCurrent).toFixed(1);
+  const critical = filtered.filter(r => avg(r.current) < 2).length;
+
+  bar.innerHTML = `
+    <div class="stat"><span class="stat-value">${totalRepos}</span><span class="stat-label">Repos</span></div>
+    <div class="stat"><span class="stat-value">${avgCurrent}</span><span class="stat-label">Avg Current</span></div>
+    <div class="stat"><span class="stat-value">${avgTarget}</span><span class="stat-label">Avg Target</span></div>
+    <div class="stat"><span class="stat-value">${avgGap}</span><span class="stat-label">Avg Gap</span></div>
+    <div class="stat"><span class="stat-value" style="color:${critical > 0 ? 'var(--level1)' : 'var(--level4)'}">${critical}</span><span class="stat-label">Critical (avg &lt; 2)</span></div>
+  `;
+}
+
+// ---- Radar Charts ----
+const chartInstances = new Map();
+
+function createRadarChart(canvas, current, target, small = false) {
+  const ctx = canvas.getContext('2d');
+  const labels = DIMENSIONS.map(d => d.label);
+  const currentData = DIMENSIONS.map(d => current[d.key]);
+  const targetData = DIMENSIONS.map(d => target[d.key]);
+
+  return new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Current',
+          data: currentData,
+          borderColor: 'rgba(108,140,255,0.9)',
+          backgroundColor: 'rgba(108,140,255,0.12)',
+          borderWidth: 2,
+          pointRadius: small ? 2 : 3,
+          pointBackgroundColor: 'rgba(108,140,255,1)',
+        },
+        {
+          label: 'Target',
+          data: targetData,
+          borderColor: 'rgba(255,170,50,0.7)',
+          backgroundColor: 'rgba(255,170,50,0.06)',
+          borderWidth: 2,
+          borderDash: [5, 3],
+          pointRadius: small ? 2 : 3,
+          pointBackgroundColor: 'rgba(255,170,50,0.8)',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0,
+          max: 5,
+          ticks: {
+            stepSize: 1,
+            display: !small,
+            color: '#555',
+            backdropColor: 'transparent',
+            font: { size: 10 },
+          },
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          angleLines: { color: 'rgba(255,255,255,0.06)' },
+          pointLabels: {
+            color: '#8b90a0',
+            font: { size: small ? 10 : 11 },
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderRadarView(filtered) {
+  const grid = document.getElementById('radar-grid');
+  // Destroy existing charts
+  chartInstances.forEach((chart, key) => { if (key.startsWith('repo-')) chart.destroy(); });
+  grid.innerHTML = '';
+
+  filtered.forEach(repo => {
+    const card = document.createElement('div');
+    card.className = 'radar-card';
+    const avgScore = avg(repo.current).toFixed(1);
+    card.innerHTML = `
+      <div class="radar-card-header">
+        <div>
+          <div class="radar-card-title">${repo.name}</div>
+          <div class="radar-card-meta">
+            <span class="badge badge-type">${repo.type}</span>
+            <span class="badge badge-team">${repo.team}</span>
+          </div>
+        </div>
+        <div class="avg-score">Avg <strong>${avgScore}</strong>/5</div>
+      </div>
+      <canvas width="300" height="300"></canvas>
+    `;
+    grid.appendChild(card);
+
+    const canvas = card.querySelector('canvas');
+    const chart = createRadarChart(canvas, repo.current, repo.target, true);
+    chartInstances.set('repo-' + repo.name, chart);
+  });
+}
+
+// ---- Aggregate View ----
+function renderAggregateView(filtered) {
+  const grid = document.getElementById('agg-grid');
+  chartInstances.forEach((chart, key) => { if (key.startsWith('agg-')) chart.destroy(); });
+  grid.innerHTML = '';
+
+  const groups = {};
+  filtered.forEach(r => {
+    if (!groups[r.type]) groups[r.type] = [];
+    groups[r.type].push(r);
+  });
+
+  Object.keys(groups).sort().forEach(type => {
+    const reposInGroup = groups[type];
+    const avgCurrent = {};
+    const avgTarget = {};
+    DIMENSIONS.forEach(d => {
+      avgCurrent[d.key] = reposInGroup.reduce((s, r) => s + r.current[d.key], 0) / reposInGroup.length;
+      avgTarget[d.key] = reposInGroup.reduce((s, r) => s + r.target[d.key], 0) / reposInGroup.length;
+    });
+
+    const card = document.createElement('div');
+    card.className = 'agg-card';
+    card.innerHTML = `
+      <h3>${type}</h3>
+      <div class="subtitle">${reposInGroup.length} repos — avg current ${avg(avgCurrent).toFixed(1)} / target ${avg(avgTarget).toFixed(1)}</div>
+      <canvas width="400" height="400"></canvas>
+    `;
+    grid.appendChild(card);
+
+    const canvas = card.querySelector('canvas');
+    const chart = createRadarChart(canvas, avgCurrent, avgTarget, false);
+    chartInstances.set('agg-' + type, chart);
+  });
+}
+
+// ---- Heatmap View ----
+function renderHeatmapView(filtered) {
+  const container = document.getElementById('heatmap-view');
+  const dimHeaders = DIMENSIONS.map(d => `<th>${d.label}</th>`).join('');
+
+  const rows = filtered
+    .sort((a, b) => avg(a.current) - avg(b.current))
+    .map(repo => {
+      const cells = DIMENSIONS.map(d => {
+        const cur = repo.current[d.key];
+        const tar = repo.target[d.key];
+        const gap = tar - cur;
+        return `<td class="heatmap-cell" style="background:${levelColor(cur)}22; color:${levelColor(cur)}">
+          ${cur}
+          ${gap > 0 ? `<span class="gap-indicator" style="color:${gapColor(gap)}">+${gap}</span>` : ''}
+        </td>`;
+      }).join('');
+
+      return `<tr>
+        <td class="repo-name-cell">${repo.name}</td>
+        <td class="repo-type-cell">${repo.type}</td>
+        <td class="repo-type-cell">${repo.team}</td>
+        <td style="font-weight:600; color:${levelColor(avg(repo.current))}">${avg(repo.current).toFixed(1)}</td>
+        ${cells}
+      </tr>`;
+    }).join('');
+
+  container.innerHTML = `
+    <table class="heatmap-table">
+      <thead><tr><th>Repo</th><th>Type</th><th>Team</th><th>Avg</th>${dimHeaders}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+// ---- Gap Analysis View ----
+function renderGapView(filtered) {
+  const list = document.getElementById('gap-list');
+  const gaps = [];
+
+  filtered.forEach(repo => {
+    DIMENSIONS.forEach(d => {
+      const gap = repo.target[d.key] - repo.current[d.key];
+      if (gap > 0) {
+        gaps.push({ repo: repo.name, type: repo.type, team: repo.team, dim: d.label, current: repo.current[d.key], target: repo.target[d.key], gap });
+      }
+    });
+  });
+
+  gaps.sort((a, b) => b.gap - a.gap || a.current - b.current);
+
+  list.innerHTML = gaps.slice(0, 100).map(g => `
+    <div class="gap-row">
+      <div class="gap-row-repo">${g.repo} <span style="font-weight:400;color:var(--text-muted);font-size:12px">${g.type}</span></div>
+      <div class="gap-row-dim">${g.dim}</div>
+      <div>
+        <div class="gap-bar-track">
+          <div class="gap-bar-current" style="width:${g.current * 20}%; background:${levelColor(g.current)}"></div>
+          <div class="gap-bar-target" style="left:${g.target * 20}%"></div>
+        </div>
+      </div>
+      <div class="gap-score" style="color:${gapColor(g.gap)}">${g.current} → ${g.target}</div>
+    </div>
+  `).join('');
+}
+
+// ---- View Switching ----
+let currentView = 'radar';
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.getElementById('radar-view').classList.toggle('hidden', view !== 'radar');
+  document.getElementById('aggregate-view').classList.toggle('hidden', view !== 'aggregate');
+  document.getElementById('heatmap-view').classList.toggle('hidden', view !== 'heatmap');
+  document.getElementById('gap-view').classList.toggle('hidden', view !== 'gap');
+  renderCurrentView();
+}
+
+function renderCurrentView() {
+  const filtered = getFiltered();
+  renderStats(filtered);
+  if (currentView === 'radar') renderRadarView(filtered);
+  else if (currentView === 'aggregate') renderAggregateView(filtered);
+  else if (currentView === 'heatmap') renderHeatmapView(filtered);
+  else if (currentView === 'gap') renderGapView(filtered);
+}
+
+// ---- Event Listeners ----
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchView(t.dataset.view)));
+document.getElementById('filter-type').addEventListener('change', renderCurrentView);
+document.getElementById('filter-team').addEventListener('change', renderCurrentView);
+document.getElementById('filter-search').addEventListener('input', renderCurrentView);
+
+// ---- Init ----
+initFilters();
+renderCurrentView();
+</script>
+
+</body>
+</html>
