@@ -43,19 +43,15 @@
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      padding: 16px 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
     }
 
-    header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-    }
+    header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
 
     .filters {
       display: flex;
@@ -65,7 +61,7 @@
     }
 
     .filters label {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-muted);
       font-weight: 500;
     }
@@ -74,9 +70,9 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       outline: none;
     }
 
@@ -91,9 +87,9 @@
     }
 
     .tab {
-      padding: 6px 16px;
+      padding: 5px 14px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       cursor: pointer;
       color: var(--text-muted);
@@ -102,56 +98,76 @@
       transition: all 0.15s;
     }
 
-    .tab.active {
-      background: var(--accent);
-      color: #fff;
+    .tab.active { background: var(--accent); color: #fff; }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* --- Depth toggle (Dimensions vs Sub-dimensions) --- */
+    .depth-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 3px;
     }
 
-    .tab:hover:not(.active) { color: var(--text); }
+    .depth-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .depth-btn.active { background: #7c5cbf; color: #fff; }
+    .depth-btn:hover:not(.active) { color: var(--text); }
+
+    /* --- Dimension filter for sub-dimension drill-down --- */
+    .dim-filter {
+      display: none;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .dim-filter.visible { display: flex; }
 
     .stats-bar {
       display: flex;
       gap: 24px;
-      padding: 16px 32px;
+      padding: 12px 32px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
     }
 
-    .stat {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
 
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--accent);
-    }
+    .stat-value { font-size: 20px; font-weight: 700; color: var(--accent); }
 
     .stat-label {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
     }
 
-    main { padding: 24px 32px; }
+    main { padding: 20px 32px; }
 
     /* --- Radar View --- */
     #radar-view .radar-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 20px;
+      gap: 16px;
     }
 
     .radar-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 16px;
-      cursor: pointer;
+      padding: 14px;
       transition: border-color 0.15s;
     }
 
@@ -161,124 +177,101 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
-    .radar-card-title {
-      font-size: 14px;
-      font-weight: 600;
-    }
+    .radar-card-title { font-size: 13px; font-weight: 600; }
 
-    .radar-card-meta {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .radar-card-meta { display: flex; gap: 6px; align-items: center; }
 
-    .badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: 500;
-    }
+    .badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+    .badge-type { background: var(--accent-dim); color: var(--accent); }
+    .badge-team { background: rgba(255,255,255,0.06); color: var(--text-muted); }
 
-    .badge-type {
-      background: var(--accent-dim);
-      color: var(--accent);
-    }
-
-    .badge-team {
-      background: rgba(255,255,255,0.06);
-      color: var(--text-muted);
-    }
-
-    .avg-score {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .avg-score strong {
-      color: var(--text);
-      font-size: 14px;
-    }
+    .avg-score { font-size: 12px; color: var(--text-muted); }
+    .avg-score strong { color: var(--text); font-size: 14px; }
 
     /* --- Heatmap View --- */
     #heatmap-view { overflow-x: auto; }
 
-    .heatmap-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+    .heatmap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 
     .heatmap-table th {
       text-align: left;
-      padding: 10px 12px;
+      padding: 8px 8px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       font-weight: 600;
-      font-size: 12px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.3px;
       color: var(--text-muted);
       position: sticky;
       top: 0;
       z-index: 1;
+      white-space: nowrap;
     }
 
-    .heatmap-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border);
+    .heatmap-table th.dim-group-header {
+      text-align: center;
+      background: var(--surface2);
+      border-left: 2px solid var(--border);
+      font-size: 11px;
+      color: var(--accent);
     }
+
+    .heatmap-table th.sub-header {
+      font-size: 9px;
+      text-align: center;
+      padding: 4px 4px;
+      border-left: 1px solid var(--border);
+    }
+
+    .heatmap-table th.sub-header-first {
+      border-left: 2px solid var(--border);
+    }
+
+    .heatmap-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
 
     .heatmap-table tr:hover td { background: var(--surface2); }
 
     .heatmap-cell {
-      width: 80px;
       text-align: center;
       font-weight: 600;
-      font-size: 13px;
-      border-radius: 4px;
-      position: relative;
+      font-size: 12px;
+      border-left: 1px solid var(--border);
     }
 
+    .heatmap-cell-first { border-left: 2px solid var(--border); }
+
     .heatmap-cell .gap-indicator {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 400;
       display: block;
       margin-top: 1px;
     }
 
-    .repo-name-cell {
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .repo-type-cell {
-      color: var(--text-muted);
-      font-size: 12px;
-    }
+    .repo-name-cell { font-weight: 500; white-space: nowrap; }
+    .repo-type-cell { color: var(--text-muted); font-size: 11px; }
 
     /* --- Gap Analysis View --- */
-    #gap-view .gap-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    #gap-view .gap-list { display: flex; flex-direction: column; gap: 6px; }
 
     .gap-row {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 14px 18px;
+      padding: 10px 16px;
       display: grid;
-      grid-template-columns: 200px 120px 1fr 80px;
+      grid-template-columns: 180px 140px 120px 1fr 70px;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      font-size: 13px;
     }
 
-    .gap-row-repo { font-weight: 600; font-size: 14px; }
-    .gap-row-dim { color: var(--text-muted); font-size: 13px; }
+    .gap-row-repo { font-weight: 600; }
+    .gap-row-dim { color: var(--accent); font-size: 12px; }
+    .gap-row-sub { color: var(--text-muted); font-size: 12px; }
 
     .gap-bar-track {
       height: 8px;
@@ -288,11 +281,7 @@
       position: relative;
     }
 
-    .gap-bar-current {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.3s;
-    }
+    .gap-bar-current { height: 100%; border-radius: 4px; transition: width 0.3s; }
 
     .gap-bar-target {
       position: absolute;
@@ -303,60 +292,80 @@
       border-radius: 1px;
     }
 
-    .gap-score {
-      text-align: right;
-      font-weight: 700;
-      font-size: 14px;
-    }
+    .gap-score { text-align: right; font-weight: 700; font-size: 13px; }
 
     /* --- Aggregate Radar View --- */
     #aggregate-view .agg-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-      gap: 24px;
+      gap: 20px;
     }
 
     .agg-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 20px;
+      padding: 16px;
     }
 
-    .agg-card h3 {
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
+    .agg-card h3 { font-size: 15px; margin-bottom: 2px; }
 
     .agg-card .subtitle {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
+
+    /* --- Dimension Deep Dive View --- */
+    #dimension-view .dim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 20px;
+    }
+
+    .dim-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .dim-card h3 { font-size: 15px; margin-bottom: 2px; }
+    .dim-card .subtitle { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+
+    .dim-sub-scores {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .dim-sub-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: var(--surface2);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .dim-sub-item .sub-name { color: var(--text-muted); }
+    .dim-sub-item .sub-scores { font-weight: 600; }
 
     .legend {
       display: flex;
-      gap: 20px;
-      padding: 12px 32px;
-      font-size: 12px;
+      gap: 16px;
+      padding: 8px 32px;
+      font-size: 11px;
       color: var(--text-muted);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
     }
 
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .legend-swatch {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
-
-    .sort-select { margin-left: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
 
     .hidden { display: none !important; }
   </style>
@@ -367,21 +376,28 @@
   <h1>Engineering Maturity Dashboard</h1>
   <div class="filters">
     <label>Type</label>
-    <select id="filter-type">
-      <option value="all">All Types</option>
-    </select>
+    <select id="filter-type"><option value="all">All Types</option></select>
 
     <label>Team</label>
-    <select id="filter-team">
-      <option value="all">All Teams</option>
-    </select>
+    <select id="filter-team"><option value="all">All Teams</option></select>
 
     <label>Search</label>
     <input type="text" id="filter-search" placeholder="Filter repos...">
 
+    <div class="depth-toggle">
+      <button class="depth-btn active" data-depth="dimensions">Dimensions</button>
+      <button class="depth-btn" data-depth="subdimensions">Sub-dimensions</button>
+    </div>
+
+    <div class="dim-filter" id="dim-filter">
+      <label>Dimension</label>
+      <select id="filter-dimension"><option value="all">All Dimensions</option></select>
+    </div>
+
     <div class="tabs">
       <button class="tab active" data-view="radar">Radar</button>
       <button class="tab" data-view="aggregate">By Type</button>
+      <button class="tab" data-view="dimension">By Dimension</button>
       <button class="tab" data-view="heatmap">Heatmap</button>
       <button class="tab" data-view="gap">Gap Analysis</button>
     </div>
@@ -389,8 +405,8 @@
 </header>
 
 <div class="legend">
-  <div class="legend-item"><div class="legend-swatch" style="background:var(--current)"></div> Current State</div>
-  <div class="legend-item"><div class="legend-swatch" style="background:var(--target)"></div> Target State</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--current)"></div> Current</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--target)"></div> Target</div>
   <div class="legend-item"><div class="legend-swatch" style="background:var(--level1)"></div> 1 Ad-hoc</div>
   <div class="legend-item"><div class="legend-swatch" style="background:var(--level2)"></div> 2 Basic</div>
   <div class="legend-item"><div class="legend-swatch" style="background:var(--level3)"></div> 3 Defined</div>
@@ -403,19 +419,21 @@
 <main>
   <div id="radar-view"><div class="radar-grid" id="radar-grid"></div></div>
   <div id="aggregate-view" class="hidden"><div class="agg-grid" id="agg-grid"></div></div>
+  <div id="dimension-view" class="hidden"><div class="dim-grid" id="dim-grid"></div></div>
   <div id="heatmap-view" class="hidden"></div>
   <div id="gap-view" class="hidden"><div class="gap-list" id="gap-list"></div></div>
 </main>
 
 <script>
-// ---- Utility Functions ----
-function avg(obj) {
-  const vals = Object.values(obj);
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
-}
+// ---- State ----
+let currentView = 'radar';
+let currentDepth = 'dimensions'; // 'dimensions' | 'subdimensions'
+const chartInstances = new Map();
 
+// ---- Utility ----
 function levelColor(val) {
   if (val <= 1) return 'var(--level1)';
+  if (val <= 1.5) return 'var(--level1)';
   if (val <= 2) return 'var(--level2)';
   if (val <= 3) return 'var(--level3)';
   if (val <= 4) return 'var(--level4)';
@@ -440,53 +458,64 @@ function getFiltered() {
   );
 }
 
+// Get the active items for radar/heatmap based on depth + dimension filter
+function getActiveItems() {
+  const dimFilter = document.getElementById('filter-dimension').value;
+  if (currentDepth === 'dimensions') {
+    return DIMENSIONS.map(d => ({ key: d.key, label: d.label, getValue: (scores) => dimScore(scores, d) }));
+  } else {
+    if (dimFilter === 'all') {
+      // All sub-dimensions
+      return DIMENSIONS.flatMap(d => d.subs.map(s => ({ key: s.key, label: s.label, dimLabel: d.label, getValue: (scores) => scores[s.key] || 0 })));
+    } else {
+      const dim = DIMENSIONS.find(d => d.key === dimFilter);
+      return dim.subs.map(s => ({ key: s.key, label: s.label, dimLabel: dim.label, getValue: (scores) => scores[s.key] || 0 }));
+    }
+  }
+}
+
 // ---- Populate Filters ----
 function initFilters() {
   const types = [...new Set(repos.map(r => r.type))].sort();
   const teams = [...new Set(repos.map(r => r.team))].sort();
   const typeSelect = document.getElementById('filter-type');
   const teamSelect = document.getElementById('filter-team');
+  const dimSelect = document.getElementById('filter-dimension');
 
-  types.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t; opt.textContent = t;
-    typeSelect.appendChild(opt);
-  });
-
-  teams.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t; opt.textContent = t;
-    teamSelect.appendChild(opt);
-  });
+  types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; typeSelect.appendChild(o); });
+  teams.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; teamSelect.appendChild(o); });
+  DIMENSIONS.forEach(d => { const o = document.createElement('option'); o.value = d.key; o.textContent = d.label; dimSelect.appendChild(o); });
 }
 
 // ---- Stats Bar ----
 function renderStats(filtered) {
   const bar = document.getElementById('stats-bar');
-  const totalRepos = filtered.length;
-  const avgCurrent = (filtered.reduce((s, r) => s + avg(r.current), 0) / totalRepos || 0).toFixed(1);
-  const avgTarget = (filtered.reduce((s, r) => s + avg(r.target), 0) / totalRepos || 0).toFixed(1);
-  const avgGap = (avgTarget - avgCurrent).toFixed(1);
-  const critical = filtered.filter(r => avg(r.current) < 2).length;
+  const n = filtered.length;
+  if (n === 0) { bar.innerHTML = '<div class="stat"><span class="stat-value">0</span><span class="stat-label">Repos</span></div>'; return; }
+  const avgCur = (filtered.reduce((s, r) => s + overallScore(r.current), 0) / n).toFixed(1);
+  const avgTar = (filtered.reduce((s, r) => s + overallScore(r.target), 0) / n).toFixed(1);
+  const avgGap = (avgTar - avgCur).toFixed(1);
+  const critical = filtered.filter(r => overallScore(r.current) < 2).length;
+
+  // Per-dimension avg
+  const dimStats = DIMENSIONS.map(d => {
+    const avg = (filtered.reduce((s, r) => s + dimScore(r.current, d), 0) / n).toFixed(1);
+    return `<div class="stat"><span class="stat-value" style="color:${levelColor(parseFloat(avg))}">${avg}</span><span class="stat-label">${d.label}</span></div>`;
+  }).join('');
 
   bar.innerHTML = `
-    <div class="stat"><span class="stat-value">${totalRepos}</span><span class="stat-label">Repos</span></div>
-    <div class="stat"><span class="stat-value">${avgCurrent}</span><span class="stat-label">Avg Current</span></div>
-    <div class="stat"><span class="stat-value">${avgTarget}</span><span class="stat-label">Avg Target</span></div>
+    <div class="stat"><span class="stat-value">${n}</span><span class="stat-label">Repos</span></div>
+    <div class="stat"><span class="stat-value">${avgCur}</span><span class="stat-label">Avg Current</span></div>
+    <div class="stat"><span class="stat-value">${avgTar}</span><span class="stat-label">Avg Target</span></div>
     <div class="stat"><span class="stat-value">${avgGap}</span><span class="stat-label">Avg Gap</span></div>
-    <div class="stat"><span class="stat-value" style="color:${critical > 0 ? 'var(--level1)' : 'var(--level4)'}">${critical}</span><span class="stat-label">Critical (avg &lt; 2)</span></div>
+    <div class="stat"><span class="stat-value" style="color:${critical > 0 ? 'var(--level1)' : 'var(--level4)'}">${critical}</span><span class="stat-label">Critical</span></div>
+    ${dimStats}
   `;
 }
 
-// ---- Radar Charts ----
-const chartInstances = new Map();
-
-function createRadarChart(canvas, current, target, small = false) {
+// ---- Radar Chart Factory ----
+function createRadarChart(canvas, currentData, targetData, labels, small = false) {
   const ctx = canvas.getContext('2d');
-  const labels = DIMENSIONS.map(d => d.label);
-  const currentData = DIMENSIONS.map(d => current[d.key]);
-  const targetData = DIMENSIONS.map(d => target[d.key]);
-
   return new Chart(ctx, {
     type: 'radar',
     data: {
@@ -519,37 +548,34 @@ function createRadarChart(canvas, current, target, small = false) {
       plugins: { legend: { display: false } },
       scales: {
         r: {
-          min: 0,
-          max: 5,
-          ticks: {
-            stepSize: 1,
-            display: !small,
-            color: '#555',
-            backdropColor: 'transparent',
-            font: { size: 10 },
-          },
+          min: 0, max: 5,
+          ticks: { stepSize: 1, display: !small, color: '#555', backdropColor: 'transparent', font: { size: 9 } },
           grid: { color: 'rgba(255,255,255,0.06)' },
           angleLines: { color: 'rgba(255,255,255,0.06)' },
-          pointLabels: {
-            color: '#8b90a0',
-            font: { size: small ? 10 : 11 },
-          },
+          pointLabels: { color: '#8b90a0', font: { size: small ? 9 : 11 } },
         },
       },
     },
   });
 }
 
+function destroyCharts(prefix) {
+  chartInstances.forEach((chart, key) => { if (key.startsWith(prefix)) { chart.destroy(); chartInstances.delete(key); } });
+}
+
+// ---- Radar View (per-repo) ----
 function renderRadarView(filtered) {
   const grid = document.getElementById('radar-grid');
-  // Destroy existing charts
-  chartInstances.forEach((chart, key) => { if (key.startsWith('repo-')) chart.destroy(); });
+  destroyCharts('repo-');
   grid.innerHTML = '';
+
+  const items = getActiveItems();
+  const labels = items.map(i => i.label);
 
   filtered.forEach(repo => {
     const card = document.createElement('div');
     card.className = 'radar-card';
-    const avgScore = avg(repo.current).toFixed(1);
+    const avgScore = overallScore(repo.current).toFixed(1);
     card.innerHTML = `
       <div class="radar-card-header">
         <div>
@@ -565,81 +591,159 @@ function renderRadarView(filtered) {
     `;
     grid.appendChild(card);
 
-    const canvas = card.querySelector('canvas');
-    const chart = createRadarChart(canvas, repo.current, repo.target, true);
+    const curData = items.map(i => i.getValue(repo.current));
+    const tarData = items.map(i => i.getValue(repo.target));
+    const chart = createRadarChart(card.querySelector('canvas'), curData, tarData, labels, true);
     chartInstances.set('repo-' + repo.name, chart);
   });
 }
 
-// ---- Aggregate View ----
+// ---- Aggregate View (by type) ----
 function renderAggregateView(filtered) {
   const grid = document.getElementById('agg-grid');
-  chartInstances.forEach((chart, key) => { if (key.startsWith('agg-')) chart.destroy(); });
+  destroyCharts('agg-');
   grid.innerHTML = '';
 
+  const items = getActiveItems();
+  const labels = items.map(i => i.label);
   const groups = {};
-  filtered.forEach(r => {
-    if (!groups[r.type]) groups[r.type] = [];
-    groups[r.type].push(r);
-  });
+  filtered.forEach(r => { if (!groups[r.type]) groups[r.type] = []; groups[r.type].push(r); });
 
   Object.keys(groups).sort().forEach(type => {
-    const reposInGroup = groups[type];
-    const avgCurrent = {};
-    const avgTarget = {};
-    DIMENSIONS.forEach(d => {
-      avgCurrent[d.key] = reposInGroup.reduce((s, r) => s + r.current[d.key], 0) / reposInGroup.length;
-      avgTarget[d.key] = reposInGroup.reduce((s, r) => s + r.target[d.key], 0) / reposInGroup.length;
-    });
+    const rg = groups[type];
+    const curData = items.map(i => rg.reduce((s, r) => s + i.getValue(r.current), 0) / rg.length);
+    const tarData = items.map(i => rg.reduce((s, r) => s + i.getValue(r.target), 0) / rg.length);
+    const avgCur = (curData.reduce((a, b) => a + b, 0) / curData.length).toFixed(1);
+    const avgTar = (tarData.reduce((a, b) => a + b, 0) / tarData.length).toFixed(1);
 
     const card = document.createElement('div');
     card.className = 'agg-card';
+    card.innerHTML = `<h3>${type}</h3><div class="subtitle">${rg.length} repos — avg ${avgCur} / target ${avgTar}</div><canvas width="400" height="400"></canvas>`;
+    grid.appendChild(card);
+
+    const chart = createRadarChart(card.querySelector('canvas'), curData, tarData, labels, false);
+    chartInstances.set('agg-' + type, chart);
+  });
+}
+
+// ---- Dimension Deep Dive View ----
+function renderDimensionView(filtered) {
+  const grid = document.getElementById('dim-grid');
+  destroyCharts('dim-');
+  grid.innerHTML = '';
+  const n = filtered.length;
+  if (n === 0) return;
+
+  DIMENSIONS.forEach(dim => {
+    const card = document.createElement('div');
+    card.className = 'dim-card';
+
+    // Radar for this dimension's sub-dimensions (aggregated across filtered repos)
+    const labels = dim.subs.map(s => s.label);
+    const curData = dim.subs.map(s => filtered.reduce((sum, r) => sum + (r.current[s.key] || 0), 0) / n);
+    const tarData = dim.subs.map(s => filtered.reduce((sum, r) => sum + (r.target[s.key] || 0), 0) / n);
+    const avgCur = (curData.reduce((a, b) => a + b, 0) / curData.length).toFixed(1);
+    const avgTar = (tarData.reduce((a, b) => a + b, 0) / tarData.length).toFixed(1);
+
+    // Sub-score breakdown
+    const subHtml = dim.subs.map(s => {
+      const c = (filtered.reduce((sum, r) => sum + (r.current[s.key] || 0), 0) / n).toFixed(1);
+      const t = (filtered.reduce((sum, r) => sum + (r.target[s.key] || 0), 0) / n).toFixed(1);
+      return `<div class="dim-sub-item">
+        <span class="sub-name">${s.label}</span>
+        <span class="sub-scores" style="color:${levelColor(parseFloat(c))}">${c} <span style="color:var(--text-muted);font-weight:400">→</span> <span style="color:${levelColor(parseFloat(t))}">${t}</span></span>
+      </div>`;
+    }).join('');
+
     card.innerHTML = `
-      <h3>${type}</h3>
-      <div class="subtitle">${reposInGroup.length} repos — avg current ${avg(avgCurrent).toFixed(1)} / target ${avg(avgTarget).toFixed(1)}</div>
+      <h3>${dim.label}</h3>
+      <div class="subtitle">Avg current ${avgCur} / target ${avgTar} across ${n} repos</div>
       <canvas width="400" height="400"></canvas>
+      <div class="dim-sub-scores">${subHtml}</div>
     `;
     grid.appendChild(card);
 
-    const canvas = card.querySelector('canvas');
-    const chart = createRadarChart(canvas, avgCurrent, avgTarget, false);
-    chartInstances.set('agg-' + type, chart);
+    const chart = createRadarChart(card.querySelector('canvas'), curData, tarData, labels, false);
+    chartInstances.set('dim-' + dim.key, chart);
   });
 }
 
 // ---- Heatmap View ----
 function renderHeatmapView(filtered) {
   const container = document.getElementById('heatmap-view');
-  const dimHeaders = DIMENSIONS.map(d => `<th>${d.label}</th>`).join('');
 
-  const rows = filtered
-    .sort((a, b) => avg(a.current) - avg(b.current))
-    .map(repo => {
-      const cells = DIMENSIONS.map(d => {
-        const cur = repo.current[d.key];
-        const tar = repo.target[d.key];
-        const gap = tar - cur;
-        return `<td class="heatmap-cell" style="background:${levelColor(cur)}22; color:${levelColor(cur)}">
-          ${cur}
-          ${gap > 0 ? `<span class="gap-indicator" style="color:${gapColor(gap)}">+${gap}</span>` : ''}
-        </td>`;
+  if (currentDepth === 'dimensions') {
+    // Dimension-level heatmap
+    const dimHeaders = DIMENSIONS.map(d => `<th>${d.label}</th>`).join('');
+    const rows = filtered
+      .sort((a, b) => overallScore(a.current) - overallScore(b.current))
+      .map(repo => {
+        const cells = DIMENSIONS.map(d => {
+          const cur = dimScore(repo.current, d);
+          const tar = dimScore(repo.target, d);
+          const gap = tar - cur;
+          return `<td class="heatmap-cell" style="background:${levelColor(cur)}22; color:${levelColor(cur)}">
+            ${cur.toFixed(1)}
+            ${gap > 0.1 ? `<span class="gap-indicator" style="color:${gapColor(gap)}">+${gap.toFixed(1)}</span>` : ''}
+          </td>`;
+        }).join('');
+        return `<tr>
+          <td class="repo-name-cell">${repo.name}</td>
+          <td class="repo-type-cell">${repo.type}</td>
+          <td class="repo-type-cell">${repo.team}</td>
+          <td style="font-weight:600;color:${levelColor(overallScore(repo.current))}">${overallScore(repo.current).toFixed(1)}</td>
+          ${cells}
+        </tr>`;
       }).join('');
 
-      return `<tr>
-        <td class="repo-name-cell">${repo.name}</td>
-        <td class="repo-type-cell">${repo.type}</td>
-        <td class="repo-type-cell">${repo.team}</td>
-        <td style="font-weight:600; color:${levelColor(avg(repo.current))}">${avg(repo.current).toFixed(1)}</td>
-        ${cells}
-      </tr>`;
-    }).join('');
-
-  container.innerHTML = `
-    <table class="heatmap-table">
+    container.innerHTML = `<table class="heatmap-table">
       <thead><tr><th>Repo</th><th>Type</th><th>Team</th><th>Avg</th>${dimHeaders}</tr></thead>
       <tbody>${rows}</tbody>
-    </table>
-  `;
+    </table>`;
+  } else {
+    // Sub-dimension heatmap with grouped headers
+    const dimFilter = document.getElementById('filter-dimension').value;
+    const dimsToShow = dimFilter === 'all' ? DIMENSIONS : DIMENSIONS.filter(d => d.key === dimFilter);
+
+    // Two header rows: dimension group + sub-dimension names
+    const groupHeaders = dimsToShow.map(d =>
+      `<th class="dim-group-header" colspan="${d.subs.length}">${d.label}</th>`
+    ).join('');
+
+    const subHeaders = dimsToShow.flatMap((d, di) => d.subs.map((s, si) =>
+      `<th class="sub-header ${si === 0 ? 'sub-header-first' : ''}">${s.label}</th>`
+    )).join('');
+
+    const rows = filtered
+      .sort((a, b) => overallScore(a.current) - overallScore(b.current))
+      .map(repo => {
+        const cells = dimsToShow.flatMap((d, di) => d.subs.map((s, si) => {
+          const cur = repo.current[s.key] || 0;
+          const tar = repo.target[s.key] || 0;
+          const gap = tar - cur;
+          return `<td class="heatmap-cell ${si === 0 ? 'heatmap-cell-first' : ''}" style="background:${levelColor(cur)}22; color:${levelColor(cur)}">
+            ${cur}
+            ${gap > 0 ? `<span class="gap-indicator" style="color:${gapColor(gap)}">+${gap}</span>` : ''}
+          </td>`;
+        })).join('');
+
+        return `<tr>
+          <td class="repo-name-cell">${repo.name}</td>
+          <td class="repo-type-cell">${repo.type}</td>
+          <td class="repo-type-cell">${repo.team}</td>
+          <td style="font-weight:600;color:${levelColor(overallScore(repo.current))}">${overallScore(repo.current).toFixed(1)}</td>
+          ${cells}
+        </tr>`;
+      }).join('');
+
+    container.innerHTML = `<table class="heatmap-table">
+      <thead>
+        <tr><th rowspan="2">Repo</th><th rowspan="2">Type</th><th rowspan="2">Team</th><th rowspan="2">Avg</th>${groupHeaders}</tr>
+        <tr>${subHeaders}</tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
 }
 
 // ---- Gap Analysis View ----
@@ -647,42 +751,69 @@ function renderGapView(filtered) {
   const list = document.getElementById('gap-list');
   const gaps = [];
 
-  filtered.forEach(repo => {
-    DIMENSIONS.forEach(d => {
-      const gap = repo.target[d.key] - repo.current[d.key];
-      if (gap > 0) {
-        gaps.push({ repo: repo.name, type: repo.type, team: repo.team, dim: d.label, current: repo.current[d.key], target: repo.target[d.key], gap });
-      }
+  if (currentDepth === 'dimensions') {
+    filtered.forEach(repo => {
+      DIMENSIONS.forEach(d => {
+        const cur = dimScore(repo.current, d);
+        const tar = dimScore(repo.target, d);
+        const gap = tar - cur;
+        if (gap > 0.1) {
+          gaps.push({ repo: repo.name, type: repo.type, dim: d.label, sub: '', current: cur, target: tar, gap });
+        }
+      });
     });
-  });
+  } else {
+    const dimFilter = document.getElementById('filter-dimension').value;
+    const dimsToScan = dimFilter === 'all' ? DIMENSIONS : DIMENSIONS.filter(d => d.key === dimFilter);
+    filtered.forEach(repo => {
+      dimsToScan.forEach(d => {
+        d.subs.forEach(s => {
+          const cur = repo.current[s.key] || 0;
+          const tar = repo.target[s.key] || 0;
+          const gap = tar - cur;
+          if (gap > 0) {
+            gaps.push({ repo: repo.name, type: repo.type, dim: d.label, sub: s.label, current: cur, target: tar, gap });
+          }
+        });
+      });
+    });
+  }
 
   gaps.sort((a, b) => b.gap - a.gap || a.current - b.current);
 
-  list.innerHTML = gaps.slice(0, 100).map(g => `
+  list.innerHTML = gaps.slice(0, 150).map(g => `
     <div class="gap-row">
-      <div class="gap-row-repo">${g.repo} <span style="font-weight:400;color:var(--text-muted);font-size:12px">${g.type}</span></div>
+      <div class="gap-row-repo">${g.repo} <span style="font-weight:400;color:var(--text-muted);font-size:11px">${g.type}</span></div>
       <div class="gap-row-dim">${g.dim}</div>
+      <div class="gap-row-sub">${g.sub}</div>
       <div>
         <div class="gap-bar-track">
-          <div class="gap-bar-current" style="width:${g.current * 20}%; background:${levelColor(g.current)}"></div>
-          <div class="gap-bar-target" style="left:${g.target * 20}%"></div>
+          <div class="gap-bar-current" style="width:${(g.current / 5) * 100}%; background:${levelColor(g.current)}"></div>
+          <div class="gap-bar-target" style="left:${(g.target / 5) * 100}%"></div>
         </div>
       </div>
-      <div class="gap-score" style="color:${gapColor(g.gap)}">${g.current} → ${g.target}</div>
+      <div class="gap-score" style="color:${gapColor(g.gap)}">${typeof g.current === 'number' && g.current % 1 !== 0 ? g.current.toFixed(1) : g.current} → ${typeof g.target === 'number' && g.target % 1 !== 0 ? g.target.toFixed(1) : g.target}</div>
     </div>
   `).join('');
 }
 
 // ---- View Switching ----
-let currentView = 'radar';
+const viewIds = ['radar', 'aggregate', 'dimension', 'heatmap', 'gap'];
 
 function switchView(view) {
   currentView = view;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
-  document.getElementById('radar-view').classList.toggle('hidden', view !== 'radar');
-  document.getElementById('aggregate-view').classList.toggle('hidden', view !== 'aggregate');
-  document.getElementById('heatmap-view').classList.toggle('hidden', view !== 'heatmap');
-  document.getElementById('gap-view').classList.toggle('hidden', view !== 'gap');
+  viewIds.forEach(v => {
+    const el = document.getElementById(v + '-view');
+    if (el) el.classList.toggle('hidden', v !== view);
+  });
+  renderCurrentView();
+}
+
+function setDepth(depth) {
+  currentDepth = depth;
+  document.querySelectorAll('.depth-btn').forEach(b => b.classList.toggle('active', b.dataset.depth === depth));
+  document.getElementById('dim-filter').classList.toggle('visible', depth === 'subdimensions');
   renderCurrentView();
 }
 
@@ -691,15 +822,18 @@ function renderCurrentView() {
   renderStats(filtered);
   if (currentView === 'radar') renderRadarView(filtered);
   else if (currentView === 'aggregate') renderAggregateView(filtered);
+  else if (currentView === 'dimension') renderDimensionView(filtered);
   else if (currentView === 'heatmap') renderHeatmapView(filtered);
   else if (currentView === 'gap') renderGapView(filtered);
 }
 
 // ---- Event Listeners ----
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchView(t.dataset.view)));
+document.querySelectorAll('.depth-btn').forEach(b => b.addEventListener('click', () => setDepth(b.dataset.depth)));
 document.getElementById('filter-type').addEventListener('change', renderCurrentView);
 document.getElementById('filter-team').addEventListener('change', renderCurrentView);
 document.getElementById('filter-search').addEventListener('input', renderCurrentView);
+document.getElementById('filter-dimension').addEventListener('change', renderCurrentView);
 
 // ---- Init ----
 initFilters();
