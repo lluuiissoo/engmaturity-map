@@ -1,6 +1,5 @@
 # Tier System
 
-
 | Tier | Description | Target Bar |
 |---|---|---|
 | Tier 1 (red)      | Revenue-critical, customer-facing | Aggressive: mostly 4-5 across customer-facing |
