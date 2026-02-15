@@ -65,7 +65,7 @@ var TIERS = {
 // Org-wide minimums — the absolute floor regardless of tier.
 // No repo should be allowed to stay below these.
 var ORG_MINIMUMS = {
-  cicd: 3, buildReliability: 2, deployFrequency: 2, releaseProcess: 2,
+  cicd: 4, buildReliability: 1, deployFrequency: 2, releaseProcess: 2,
   testCoverage: 2, staticAnalysis: 2, codeReview: 3, depFreshness: 2,
   vulnMgmt: 3, secretMgmt: 3, authPatterns: 2, sastDast: 2,
   logging: 3, metrics: 2, alerting: 2, tracing: 2,
