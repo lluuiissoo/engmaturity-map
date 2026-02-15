@@ -214,16 +214,53 @@
 
 <script>
 // ---- State ----
-let selectedRepo = null;
+let selectedRepo = null;   // repo object or null
+let selectedMode = null;   // 'repo' | 'org' | 'tier-1' | 'tier-2' | 'tier-3'
+let selectedLabel = '';
 let checkState = {}; // { subKey: { level: { criterionIndex: bool } } }
 
-// ---- Init repo select ----
+// ---- Build a scores object from a flat key→value map (for pre-populating from targets) ----
+function scoresFromMap(map) {
+  const scores = {};
+  ALL_SUB_KEYS.forEach(k => { scores[k] = map[k] || 0; });
+  return scores;
+}
+
+// ---- Init repo select with optgroups ----
 const repoSelect = document.getElementById('repo-select');
-repos.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => {
+
+// Baselines group
+const baseGroup = document.createElement('optgroup');
+baseGroup.label = 'Target Profiles';
+const orgOpt = document.createElement('option');
+orgOpt.value = '__org__';
+orgOpt.textContent = `Org Baseline — Minimum Floor`;
+baseGroup.appendChild(orgOpt);
+
+[1, 2, 3].forEach(t => {
   const o = document.createElement('option');
-  o.value = r.name;
-  o.textContent = `${r.name} (${r.type} — T${r.tier})`;
-  repoSelect.appendChild(o);
+  o.value = `__tier_${t}__`;
+  o.textContent = `Tier ${t} Target — ${TIERS[t].description}`;
+  baseGroup.appendChild(o);
+});
+repoSelect.appendChild(baseGroup);
+
+// Repos grouped by type
+const typeGroups = {};
+repos.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => {
+  if (!typeGroups[r.type]) typeGroups[r.type] = [];
+  typeGroups[r.type].push(r);
+});
+Object.keys(typeGroups).sort().forEach(type => {
+  const group = document.createElement('optgroup');
+  group.label = type;
+  typeGroups[type].forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.name;
+    o.textContent = `${r.name} (T${r.tier} — ${r.team})`;
+    group.appendChild(o);
+  });
+  repoSelect.appendChild(group);
 });
 
 function levelColor(val) {
@@ -274,19 +311,25 @@ function renderScoreSummary() {
   const scores = computeAllScores();
   const overall = overallScore(scores);
 
+  const isBaseline = selectedMode === 'org' || (selectedMode && selectedMode.startsWith('tier-'));
+  const preLabel = isBaseline ? 'loaded' : 'current';
+  const currentOverall = selectedRepo ? overallScore(selectedRepo.current).toFixed(1) : '—';
+  const targetOverall = selectedRepo && selectedRepo.target ? overallScore(selectedRepo.target).toFixed(1) : null;
+
   let html = `<div class="score-chip">
     <div class="sc-label">Overall</div>
     <div class="sc-value" style="color:${levelColor(overall)}">${overall.toFixed(1)}</div>
-    <div class="sc-sub">${selectedRepo ? `current: ${overallScore(selectedRepo.current).toFixed(1)}` : ''}</div>
+    <div class="sc-sub">${preLabel}: ${currentOverall}${targetOverall ? ' | target: ' + targetOverall : ''}</div>
   </div>`;
 
   DIMENSIONS.forEach(dim => {
     const ds = dimScore(scores, dim);
-    const currentDs = selectedRepo ? dimScore(selectedRepo.current, dim) : 0;
+    const currentDs = selectedRepo ? dimScore(selectedRepo.current, dim).toFixed(1) : '—';
+    const targetDs = selectedRepo && selectedRepo.target ? dimScore(selectedRepo.target, dim).toFixed(1) : null;
     html += `<div class="score-chip">
       <div class="sc-label">${dim.label}</div>
       <div class="sc-value" style="color:${levelColor(ds)}">${ds.toFixed(1)}</div>
-      <div class="sc-sub">current: ${currentDs.toFixed(1)}</div>
+      <div class="sc-sub">${preLabel}: ${currentDs}${targetDs ? ' | target: ' + targetDs : ''}</div>
     </div>`;
   });
 
@@ -319,15 +362,18 @@ function renderAssessment() {
       const rubric = ASSESSMENT[sub.key];
       if (!rubric) return;
       const subScore = computeSubScore(sub.key);
-      const currentVal = selectedRepo ? selectedRepo.current[sub.key] : 0;
-      const targetVal = selectedRepo ? selectedRepo.target[sub.key] : 0;
+      const isBase = selectedMode === 'org' || (selectedMode && selectedMode.startsWith('tier-'));
+      const preVal = selectedRepo ? selectedRepo.current[sub.key] : 0;
+      const targetVal = selectedRepo && selectedRepo.target ? selectedRepo.target[sub.key] : null;
+      const preStr = isBase ? `loaded: ${preVal}` : `current: ${preVal}`;
+      const targetStr = targetVal !== null ? ` | target: ${targetVal}` : '';
 
       html += `<div class="sub-section" data-sub="${sub.key}">
         <div class="sub-header">
           <h3>${sub.label}</h3>
           <div>
             <span class="sub-computed-score" data-sub-score="${sub.key}" style="color:${levelColorRaw(subScore)}">${subScore}/5</span>
-            <span class="sub-current">current: ${currentVal} | target: ${targetVal}</span>
+            <span class="sub-current">${preStr}${targetStr}</span>
           </div>
         </div>`;
 
@@ -414,24 +460,57 @@ function toggleDim(header) {
   header.closest('.dim-section').classList.toggle('open');
 }
 
-// ---- Repo selection ----
+// ---- Selection handler ----
 repoSelect.addEventListener('change', () => {
-  const name = repoSelect.value;
-  if (!name) { selectedRepo = null; return; }
-  selectedRepo = repos.find(r => r.name === name);
+  const val = repoSelect.value;
+  if (!val) { selectedRepo = null; selectedMode = null; return; }
 
   const info = document.getElementById('repo-info');
   info.classList.remove('hidden');
-  info.innerHTML = `
-    <span class="ri-name">${selectedRepo.name}</span>
-    <span class="badge badge-type">${selectedRepo.type}</span>
-    <span class="badge badge-tier-${selectedRepo.tier}">Tier ${selectedRepo.tier}</span>
-    <span style="color:var(--text-muted);font-size:12px">${selectedRepo.team}</span>
-    <span style="color:var(--text-muted);font-size:12px">Current avg: ${overallScore(selectedRepo.current).toFixed(1)} | Target avg: ${overallScore(selectedRepo.target).toFixed(1)}</span>
-  `;
 
-  prePopulateFromCurrent(selectedRepo);
-  renderAssessment();
+  if (val === '__org__') {
+    // Org baseline — pre-populate from ORG_MINIMUMS
+    selectedMode = 'org';
+    selectedLabel = 'Org Baseline Maturity';
+    const orgScores = scoresFromMap(ORG_MINIMUMS);
+    selectedRepo = { name: 'Org Baseline', type: 'All', team: 'All', tier: null, current: orgScores, target: null };
+    info.innerHTML = `
+      <span class="ri-name">Org Baseline Maturity</span>
+      <span style="color:var(--text-muted);font-size:12px">Define the org-wide minimum floor. Pre-populated from ORG_MINIMUMS.</span>
+      <span style="color:var(--text-muted);font-size:12px">Current target avg: ${overallScore(orgScores).toFixed(1)}</span>
+    `;
+    prePopulateFromCurrent(selectedRepo);
+    renderAssessment();
+  } else if (val.startsWith('__tier_')) {
+    // Tier baseline — pre-populate from TIERS[n].targets
+    const tier = parseInt(val.replace('__tier_', '').replace('__', ''));
+    selectedMode = 'tier-' + tier;
+    selectedLabel = `Tier ${tier} Baseline`;
+    const tierScores = scoresFromMap(TIERS[tier].targets);
+    selectedRepo = { name: `Tier ${tier} Baseline`, type: 'All', team: 'All', tier: tier, current: tierScores, target: null };
+    info.innerHTML = `
+      <span class="ri-name">Tier ${tier} Target Profile</span>
+      <span class="badge badge-tier-${tier}">${TIERS[tier].description}</span>
+      <span style="color:var(--text-muted);font-size:12px">Define the target expectations for Tier ${tier} repos. Pre-populated from TIERS[${tier}].targets.</span>
+      <span style="color:var(--text-muted);font-size:12px">Current target avg: ${overallScore(tierScores).toFixed(1)}</span>
+    `;
+    prePopulateFromCurrent(selectedRepo);
+    renderAssessment();
+  } else {
+    // Individual repo
+    selectedMode = 'repo';
+    selectedRepo = repos.find(r => r.name === val);
+    selectedLabel = selectedRepo.name;
+    info.innerHTML = `
+      <span class="ri-name">${selectedRepo.name}</span>
+      <span class="badge badge-type">${selectedRepo.type}</span>
+      <span class="badge badge-tier-${selectedRepo.tier}">Tier ${selectedRepo.tier}</span>
+      <span style="color:var(--text-muted);font-size:12px">${selectedRepo.team}</span>
+      <span style="color:var(--text-muted);font-size:12px">Current avg: ${overallScore(selectedRepo.current).toFixed(1)} | Target avg: ${overallScore(selectedRepo.target).toFixed(1)}</span>
+    `;
+    prePopulateFromCurrent(selectedRepo);
+    renderAssessment();
+  }
 });
 
 // ---- Expand / Collapse ----
@@ -442,27 +521,52 @@ document.getElementById('btn-collapse-all').addEventListener('click', () => {
   document.querySelectorAll('.dim-section').forEach(s => s.classList.remove('open'));
 });
 
+// ---- Export helpers ----
+function getExportName() {
+  if (selectedMode === 'org') return 'org-baseline';
+  if (selectedMode && selectedMode.startsWith('tier-')) return selectedMode + '-baseline';
+  return selectedRepo ? selectedRepo.name : 'unknown';
+}
+
+function getExportHeader() {
+  if (selectedMode === 'org') return `Org Baseline Maturity (${repos.length} repos)`;
+  if (selectedMode && selectedMode.startsWith('tier-')) {
+    const t = parseInt(selectedMode.split('-')[1]);
+    return `Tier ${t} Baseline — ${TIERS[t].description} (${repos.filter(r => r.tier === t).length} repos)`;
+  }
+  return selectedRepo ? `${selectedRepo.name} (${selectedRepo.type}, Tier ${selectedRepo.tier})` : '';
+}
+
 // ---- Export ----
 document.getElementById('btn-export').addEventListener('click', () => {
   if (!selectedRepo) return;
   const scores = computeAllScores();
   const output = {
-    repo: selectedRepo.name,
-    type: selectedRepo.type,
-    team: selectedRepo.team,
-    tier: selectedRepo.tier,
+    assessmentType: selectedMode,
+    name: selectedLabel,
     assessedAt: new Date().toISOString(),
     scores: scores,
     dimensionScores: {},
     overall: parseFloat(overallScore(scores).toFixed(2)),
   };
+  if (selectedMode === 'repo') {
+    output.repo = selectedRepo.name;
+    output.type = selectedRepo.type;
+    output.team = selectedRepo.team;
+    output.tier = selectedRepo.tier;
+  } else if (selectedMode && selectedMode.startsWith('tier-')) {
+    output.tier = parseInt(selectedMode.split('-')[1]);
+    output.repoCount = repos.filter(r => r.tier === output.tier).length;
+  } else {
+    output.repoCount = repos.length;
+  }
   DIMENSIONS.forEach(d => { output.dimensionScores[d.key] = parseFloat(dimScore(scores, d).toFixed(2)); });
 
   const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `assessment-${selectedRepo.name}-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `assessment-${getExportName()}-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -471,7 +575,7 @@ document.getElementById('btn-export').addEventListener('click', () => {
 document.getElementById('btn-copy').addEventListener('click', () => {
   if (!selectedRepo) return;
   const scores = computeAllScores();
-  const lines = [`${selectedRepo.name} (${selectedRepo.type}, Tier ${selectedRepo.tier})`, `Assessed: ${new Date().toISOString().slice(0,10)}`, `Overall: ${overallScore(scores).toFixed(1)}`, ''];
+  const lines = [getExportHeader(), `Assessed: ${new Date().toISOString().slice(0,10)}`, `Overall: ${overallScore(scores).toFixed(1)}`, ''];
   DIMENSIONS.forEach(d => {
     lines.push(`${d.label}: ${dimScore(scores, d).toFixed(1)}`);
     d.subs.forEach(s => {
