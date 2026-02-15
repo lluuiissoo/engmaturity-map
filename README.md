@@ -1,5 +1,5 @@
-# Maturity Tracker - Inventory
-This repo is intended to track technical asset inventory and its maturity level.
+# MaturityMap
+Engineering maturity tracking and visualization for your technical asset inventory.
 
 
 # Overview:
@@ -78,14 +78,15 @@ Score = highest level where ALL criteria are fully satisfied.
 
 ```
 maturity-chart/
-  index.html               — main dashboard
-  assess.html              — assessment/grading page
-  dimensions-loader.js     — dimension & sub-dimension definitions
-  dimensions.json          — canonical source of truth for dimensions
-  tiers-loader.js          — tier profiles & org minimums
-  inventory-loader.js      — repo inventory (name, type, team, tier, current scores)
-  assessment-loader.js     — assessment rubric (criteria per level per sub-dimension)
-  data.js                  — glue: derives computed values (targets, helpers)
-  docs/                    — reference documentation
+  index.html                    — main dashboard
+  assess.html                   — assessment/grading page
+  dimensions.json               — canonical source of truth for dimensions
+  js/
+    dimensions-loader.js        — dimension & sub-dimension definitions
+    tiers-loader.js             — tier profiles & org minimums
+    inventory-loader.js         — repo inventory (name, type, team, tier, current scores)
+    assessment-loader.js        — assessment rubric (criteria per level per sub-dimension)
+    main.js                     — glue: derives computed values (targets, helpers)
+  docs/                         — reference documentation
 ```
 
