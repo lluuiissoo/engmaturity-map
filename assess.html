@@ -412,8 +412,22 @@ function renderAssessment() {
     html += `</div></div>`; // dim-body, dim-section
   });
 
+  // Preserve scroll position and open/closed state across re-renders
+  const scrollY = window.scrollY;
+  const openDims = new Set();
+  document.querySelectorAll('.dim-section.open').forEach(s => openDims.add(s.dataset.dim));
+
   body.innerHTML = html;
+
+  // Restore open/closed state (default to open on first render)
+  if (openDims.size > 0) {
+    document.querySelectorAll('.dim-section').forEach(s => {
+      s.classList.toggle('open', openDims.has(s.dataset.dim));
+    });
+  }
+
   renderScoreSummary();
+  window.scrollTo(0, scrollY);
 }
 
 // ---- Checkbox handler ----
