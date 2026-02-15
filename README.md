@@ -1,6 +1,8 @@
 # MaturityMap
 Engineering maturity tracking and visualization for your technical asset inventory.
 
+![App Screenshot](/docs/img/engmaturity.png)
+
 
 # Overview:
 
