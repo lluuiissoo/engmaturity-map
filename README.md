@@ -4,7 +4,7 @@ Engineering maturity tracking and visualization for your technical asset invento
 ![App Screenshot](/docs/img/engmaturity.png)
 
 
-# Overview:
+# Overview
 
 4 views:
 
@@ -76,7 +76,11 @@ Score = highest level where ALL criteria are fully satisfied.
 - **Copy to clipboard** — plain-text summary for pasting into Slack/docs/wikis
 - **Reset** — clears the assessment to start fresh
 
-# File Structure
+---
+
+# Local Developent
+
+## File Structure
 
 ```
 maturity-chart/
@@ -92,3 +96,6 @@ maturity-chart/
   docs/                         — reference documentation
 ```
 
+## How to launch
+
+Open `index.html`
