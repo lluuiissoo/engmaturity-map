@@ -27,6 +27,8 @@ def list_services():
     return [
         ServiceSummary(
             name=r["name"],
+            displayName=r["displayName"],
+            repoLink=r["repoLink"],
             type=r["type"],
             team=r["team"],
             tier=r["tier"],

@@ -18,6 +18,8 @@ class ScoreResponse(BaseModel):
 
 class ServiceSummary(BaseModel):
     name: str
+    displayName: str
+    repoLink: str
     type: str
     team: str
     tier: int

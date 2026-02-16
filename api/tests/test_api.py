@@ -22,6 +22,8 @@ def test_list_services_item_shape():
     resp = client.get("/services")
     item = resp.json()[0]
     assert "name" in item
+    assert "displayName" in item
+    assert "repoLink" in item
     assert "type" in item
     assert "team" in item
     assert "tier" in item

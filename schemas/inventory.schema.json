@@ -93,7 +93,7 @@
           "$ref": "#/$defs/scores"
         }
       },
-      "required": ["name", "type", "team", "tier", "current"],
+      "required": ["name", "displayName", "repoLink", "type", "team", "tier", "current"],
       "additionalProperties": false
     }
   }
