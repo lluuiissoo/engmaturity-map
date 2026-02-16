@@ -29,6 +29,6 @@ The API will be available at `http://localhost:8000`. Interactive docs at `http:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/services` | List all repos (name, type, team, tier) |
+| GET | `/services` | List all repos (name, displayName, repoLink, type, team, tier) |
 | GET | `/services/{name}/score` | Full scores and dimension averages for a repo |
 | GET | `/services/{name}/score/compliance` | Compliance check: current avg vs target avg, pass/fail result |
