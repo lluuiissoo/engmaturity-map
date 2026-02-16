@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assessment.schema.json",
+  "title": "Assessment Rubric",
+  "description": "Rubric defining criteria per maturity level (1-5) for each sub-dimension. Score = highest level where ALL criteria are met (cumulative).",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/$defs/subDimensionRubric"
+  },
+  "$defs": {
+    "criteriaList": {
+      "type": "array",
+      "description": "List of criteria that must ALL be met to achieve this level.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "subDimensionRubric": {
+      "type": "object",
+      "description": "Criteria for each maturity level of a sub-dimension.",
+      "properties": {
+        "1": { "$ref": "#/$defs/criteriaList", "description": "Level 1 — Ad-hoc" },
+        "2": { "$ref": "#/$defs/criteriaList", "description": "Level 2 — Basic" },
+        "3": { "$ref": "#/$defs/criteriaList", "description": "Level 3 — Defined" },
+        "4": { "$ref": "#/$defs/criteriaList", "description": "Level 4 — Managed" },
+        "5": { "$ref": "#/$defs/criteriaList", "description": "Level 5 — Optimized" }
+      },
+      "required": ["1", "2", "3", "4", "5"],
+      "additionalProperties": false
+    }
+  }
+}

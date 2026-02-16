@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dimensions.schema.json",
+  "title": "Maturity Dimensions",
+  "description": "Array of maturity dimensions, each containing sub-dimensions.",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/dimension"
+  },
+  "$defs": {
+    "subDimension": {
+      "type": "object",
+      "description": "A single sub-dimension within a parent dimension.",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unique camelCase identifier used as score key."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable display name."
+        }
+      },
+      "required": ["key", "label"],
+      "additionalProperties": false
+    },
+    "dimension": {
+      "type": "object",
+      "description": "A top-level maturity dimension grouping 4 sub-dimensions.",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unique camelCase identifier for the dimension."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable display name."
+        },
+        "subs": {
+          "type": "array",
+          "description": "Sub-dimensions belonging to this dimension.",
+          "items": {
+            "$ref": "#/$defs/subDimension"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["key", "label", "subs"],
+      "additionalProperties": false
+    }
+  }
+}

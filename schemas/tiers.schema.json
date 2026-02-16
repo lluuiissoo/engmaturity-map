@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tiers.schema.json",
+  "title": "Tier System",
+  "description": "Tier profiles and org-wide minimums. Final target per sub-dimension = max(tier target, org minimum).",
+  "type": "object",
+  "properties": {
+    "tiers": {
+      "$ref": "#/$defs/tiersMap"
+    },
+    "orgMinimums": {
+      "$ref": "#/$defs/scoreTargets",
+      "description": "Org-wide minimum floor — no repo should stay below these regardless of tier."
+    }
+  },
+  "required": ["tiers", "orgMinimums"],
+  "additionalProperties": false,
+  "$defs": {
+    "maturityLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Maturity level: 1 (Ad-hoc) to 5 (Optimized)"
+    },
+    "scoreTargets": {
+      "type": "object",
+      "description": "Target maturity level per sub-dimension.",
+      "properties": {
+        "cicd":             { "$ref": "#/$defs/maturityLevel" },
+        "buildReliability": { "$ref": "#/$defs/maturityLevel" },
+        "deployFrequency":  { "$ref": "#/$defs/maturityLevel" },
+        "releaseProcess":   { "$ref": "#/$defs/maturityLevel" },
+        "testCoverage":     { "$ref": "#/$defs/maturityLevel" },
+        "staticAnalysis":   { "$ref": "#/$defs/maturityLevel" },
+        "codeReview":       { "$ref": "#/$defs/maturityLevel" },
+        "depFreshness":     { "$ref": "#/$defs/maturityLevel" },
+        "vulnMgmt":         { "$ref": "#/$defs/maturityLevel" },
+        "secretMgmt":       { "$ref": "#/$defs/maturityLevel" },
+        "authPatterns":     { "$ref": "#/$defs/maturityLevel" },
+        "sastDast":         { "$ref": "#/$defs/maturityLevel" },
+        "logging":          { "$ref": "#/$defs/maturityLevel" },
+        "metrics":          { "$ref": "#/$defs/maturityLevel" },
+        "alerting":         { "$ref": "#/$defs/maturityLevel" },
+        "tracing":          { "$ref": "#/$defs/maturityLevel" },
+        "healthChecks":     { "$ref": "#/$defs/maturityLevel" },
+        "circuitBreakers":  { "$ref": "#/$defs/maturityLevel" },
+        "degradation":      { "$ref": "#/$defs/maturityLevel" },
+        "disasterRecovery": { "$ref": "#/$defs/maturityLevel" },
+        "runbooks":         { "$ref": "#/$defs/maturityLevel" },
+        "apiDocs":          { "$ref": "#/$defs/maturityLevel" },
+        "onboarding":       { "$ref": "#/$defs/maturityLevel" },
+        "ownership":        { "$ref": "#/$defs/maturityLevel" },
+        "iac":              { "$ref": "#/$defs/maturityLevel" },
+        "envParity":        { "$ref": "#/$defs/maturityLevel" },
+        "containerization": { "$ref": "#/$defs/maturityLevel" },
+        "scaling":          { "$ref": "#/$defs/maturityLevel" }
+      },
+      "required": [
+        "cicd", "buildReliability", "deployFrequency", "releaseProcess",
+        "testCoverage", "staticAnalysis", "codeReview", "depFreshness",
+        "vulnMgmt", "secretMgmt", "authPatterns", "sastDast",
+        "logging", "metrics", "alerting", "tracing",
+        "healthChecks", "circuitBreakers", "degradation", "disasterRecovery",
+        "runbooks", "apiDocs", "onboarding", "ownership",
+        "iac", "envParity", "containerization", "scaling"
+      ],
+      "additionalProperties": false
+    },
+    "tierProfile": {
+      "type": "object",
+      "description": "A single tier profile with metadata and target scores.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name (e.g., 'Tier 1')."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the tier's scope."
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Hex color code for UI rendering."
+        },
+        "targets": {
+          "$ref": "#/$defs/scoreTargets"
+        }
+      },
+      "required": ["name", "description", "color", "targets"],
+      "additionalProperties": false
+    },
+    "tiersMap": {
+      "type": "object",
+      "description": "Map of tier number to tier profile.",
+      "properties": {
+        "1": { "$ref": "#/$defs/tierProfile", "description": "Tier 1 — Revenue-critical / customer-facing" },
+        "2": { "$ref": "#/$defs/tierProfile", "description": "Tier 2 — Important / supporting services" },
+        "3": { "$ref": "#/$defs/tierProfile", "description": "Tier 3 — Internal / low-risk / experimental" }
+      },
+      "required": ["1", "2", "3"],
+      "additionalProperties": false
+    }
+  }
+}

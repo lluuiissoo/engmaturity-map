@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "inventory.schema.json",
+  "title": "Repo Inventory",
+  "description": "Array of repos with maturity scores across 28 sub-dimensions.",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/repo"
+  },
+  "$defs": {
+    "maturityLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Maturity level: 1 (Ad-hoc) to 5 (Optimized)"
+    },
+    "scores": {
+      "type": "object",
+      "description": "Current maturity scores per sub-dimension.",
+      "properties": {
+        "cicd":             { "$ref": "#/$defs/maturityLevel" },
+        "buildReliability": { "$ref": "#/$defs/maturityLevel" },
+        "deployFrequency":  { "$ref": "#/$defs/maturityLevel" },
+        "releaseProcess":   { "$ref": "#/$defs/maturityLevel" },
+        "testCoverage":     { "$ref": "#/$defs/maturityLevel" },
+        "staticAnalysis":   { "$ref": "#/$defs/maturityLevel" },
+        "codeReview":       { "$ref": "#/$defs/maturityLevel" },
+        "depFreshness":     { "$ref": "#/$defs/maturityLevel" },
+        "vulnMgmt":         { "$ref": "#/$defs/maturityLevel" },
+        "secretMgmt":       { "$ref": "#/$defs/maturityLevel" },
+        "authPatterns":     { "$ref": "#/$defs/maturityLevel" },
+        "sastDast":         { "$ref": "#/$defs/maturityLevel" },
+        "logging":          { "$ref": "#/$defs/maturityLevel" },
+        "metrics":          { "$ref": "#/$defs/maturityLevel" },
+        "alerting":         { "$ref": "#/$defs/maturityLevel" },
+        "tracing":          { "$ref": "#/$defs/maturityLevel" },
+        "healthChecks":     { "$ref": "#/$defs/maturityLevel" },
+        "circuitBreakers":  { "$ref": "#/$defs/maturityLevel" },
+        "degradation":      { "$ref": "#/$defs/maturityLevel" },
+        "disasterRecovery": { "$ref": "#/$defs/maturityLevel" },
+        "runbooks":         { "$ref": "#/$defs/maturityLevel" },
+        "apiDocs":          { "$ref": "#/$defs/maturityLevel" },
+        "onboarding":       { "$ref": "#/$defs/maturityLevel" },
+        "ownership":        { "$ref": "#/$defs/maturityLevel" },
+        "iac":              { "$ref": "#/$defs/maturityLevel" },
+        "envParity":        { "$ref": "#/$defs/maturityLevel" },
+        "containerization": { "$ref": "#/$defs/maturityLevel" },
+        "scaling":          { "$ref": "#/$defs/maturityLevel" }
+      },
+      "required": [
+        "cicd", "buildReliability", "deployFrequency", "releaseProcess",
+        "testCoverage", "staticAnalysis", "codeReview", "depFreshness",
+        "vulnMgmt", "secretMgmt", "authPatterns", "sastDast",
+        "logging", "metrics", "alerting", "tracing",
+        "healthChecks", "circuitBreakers", "degradation", "disasterRecovery",
+        "runbooks", "apiDocs", "onboarding", "ownership",
+        "iac", "envParity", "containerization", "scaling"
+      ],
+      "additionalProperties": false
+    },
+    "repo": {
+      "type": "object",
+      "description": "A single repo with its metadata and current maturity scores.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique repo identifier (kebab-case)."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["API", "UI", "Windows Service", "Library", "Shared"],
+          "description": "Service/repo category."
+        },
+        "team": {
+          "type": "string",
+          "description": "Owning team name."
+        },
+        "tier": {
+          "type": "integer",
+          "enum": [1, 2, 3],
+          "description": "Business criticality: 1 (revenue-critical), 2 (supporting), 3 (low-risk)."
+        },
+        "current": {
+          "$ref": "#/$defs/scores"
+        }
+      },
+      "required": ["name", "type", "team", "tier", "current"],
+      "additionalProperties": false
+    }
+  }
+}
