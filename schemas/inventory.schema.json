@@ -66,6 +66,15 @@
           "type": "string",
           "description": "Unique repo identifier (kebab-case)."
         },
+        "displayName": {
+          "type": "string",
+          "description": "Human-friendly display name for the component."
+        },
+        "repoLink": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the GitHub repository."
+        },
         "type": {
           "type": "string",
           "enum": ["API", "UI", "Windows Service", "Library", "Shared"],

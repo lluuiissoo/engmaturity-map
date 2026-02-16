@@ -11,22 +11,34 @@ def _read(filename: str) -> str:
     return (_JS_DIR / filename).read_text()
 
 
-def _parse_js_array(text: str, var_name: str) -> list:
-    """Extract a JS array assigned to `var VARNAME = [...]`."""
-    pattern = rf"(?:var|const|let)\s+{var_name}\s*=\s*(\[.*?\]);"
-    match = re.search(pattern, text, re.DOTALL)
-    if not match:
-        raise ValueError(f"Could not find {var_name} in JS source")
-    raw = match.group(1)
-    # Remove JS comments
-    raw = re.sub(r"//[^\n]*", "", raw)
+def _strip_js_comments(text: str) -> str:
+    """Remove JS line comments while preserving // inside quoted strings."""
+    return re.sub(
+        r"""'[^']*'|"[^"]*"|(//[^\n]*)""",
+        lambda m: "" if m.group(1) else m.group(0),
+        text,
+    )
+
+
+def _js_to_json(raw: str) -> str:
+    """Convert a JS object/array literal to valid JSON."""
+    raw = _strip_js_comments(raw)
     # Add quotes around unquoted keys: word followed by :
     raw = re.sub(r"(?<=[{,\n])\s*(\w+)\s*:", r' "\1":', raw)
     # Replace single quotes with double quotes
     raw = raw.replace("'", '"')
     # Remove trailing commas before ] or }
     raw = re.sub(r",\s*([}\]])", r"\1", raw)
-    return json.loads(raw)
+    return raw
+
+
+def _parse_js_array(text: str, var_name: str) -> list:
+    """Extract a JS array assigned to `var VARNAME = [...]`."""
+    pattern = rf"(?:var|const|let)\s+{var_name}\s*=\s*(\[.*?\]);"
+    match = re.search(pattern, text, re.DOTALL)
+    if not match:
+        raise ValueError(f"Could not find {var_name} in JS source")
+    return json.loads(_js_to_json(match.group(1)))
 
 
 def _parse_js_object(text: str, var_name: str) -> dict:
@@ -35,12 +47,7 @@ def _parse_js_object(text: str, var_name: str) -> dict:
     match = re.search(pattern, text, re.DOTALL)
     if not match:
         raise ValueError(f"Could not find {var_name} in JS source")
-    raw = match.group(1)
-    raw = re.sub(r"//[^\n]*", "", raw)
-    raw = re.sub(r"(?<=[{,\n])\s*(\w+)\s*:", r' "\1":', raw)
-    raw = raw.replace("'", '"')
-    raw = re.sub(r",\s*([}\]])", r"\1", raw)
-    return json.loads(raw)
+    return json.loads(_js_to_json(match.group(1)))
 
 
 # --- Load dimensions ---
@@ -66,12 +73,7 @@ for tier_num in (1, 2, 3):
     tier_match = re.search(tier_pattern, _tiers_raw, re.DOTALL)
     if not tier_match:
         raise ValueError(f"Could not find tier {tier_num}")
-    raw = tier_match.group(1)
-    raw = re.sub(r"//[^\n]*", "", raw)
-    raw = re.sub(r"(?<=[{,\n])\s*(\w+)\s*:", r' "\1":', raw)
-    raw = raw.replace("'", '"')
-    raw = re.sub(r",\s*([}\]])", r"\1", raw)
-    TIERS[tier_num] = json.loads(raw)
+    TIERS[tier_num] = json.loads(_js_to_json(tier_match.group(1)))
 
 ORG_MINIMUMS: dict[str, int] = _parse_js_object(_tiers_src, "ORG_MINIMUMS")
 
