@@ -32,6 +32,10 @@ both pre-filled as blank. Leave them blank or fill them in before saving.
 - A new **IT Owner** filter dropdown appears in the header filter bar, after the
   Team filter. Select an owner to narrow all five views to repos owned by that
   person.
+- A new **Asset ID** filter dropdown appears after IT Owner. Select an asset ID
+  to narrow all five views to repos under that asset.
+- Both filters persist across view switches and can be combined with each other
+  and with the existing Type, Team, and Tier filters.
 - The **Radar view** shows an ITOwner badge on each card. If AssetID is set, it
   appears as a small label below the badges.
 - The **Heatmap** has two new columns (Asset ID, IT Owner) between Team and Avg.
@@ -57,9 +61,8 @@ both pre-filled as blank. Leave them blank or fill them in before saving.
 
 ```
 js/inventory-loader.js       # assetId + itOwner added to all 27 repos
+js/main.js                   # repos map extended to include assetId + itOwner
 inventory-editor.html        # form fields + readFormValues() updated
-index.html                   # ITOwner filter + display in radar/heatmap/gap
+index.html                   # ITOwner filter + AssetID filter + display in radar/heatmap/gap
 assess.html                  # repo info bar shows assetId + itOwner
 ```
-
-No other files are modified.

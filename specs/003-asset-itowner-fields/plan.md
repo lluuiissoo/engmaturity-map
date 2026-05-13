@@ -1,6 +1,6 @@
 # Implementation Plan: AssetID and ITOwner Fields
 
-**Branch**: `003-asset-itowner-fields` | **Date**: 2026-05-12 | **Spec**: [spec.md](spec.md)
+**Branch**: `003-asset-itowner-fields` | **Date**: 2026-05-13 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/003-asset-itowner-fields/spec.md`
 
@@ -9,15 +9,20 @@
 Add two optional string metadata fields — `assetId` and `itOwner` — to every
 entry in `REPO_INVENTORY`. Propagate both fields across all four affected pages:
 `js/inventory-loader.js` (data source), `inventory-editor.html` (CRUD form),
-`index.html` (dashboard filter + display), and `assess.html` (info bar). No
-scoring logic, no new JS files, no new loader scripts.
+`index.html` (dashboard filters + display), and `assess.html` (info bar). No
+scoring logic changes, no new JS files, no new loader scripts.
+
+**Current status (2026-05-13)**:
+- US1 (View fields), US2 (Edit fields), US3 (ITOwner filter) — ✅ implemented
+- US4 (AssetID filter) — 🔲 planned, not yet implemented
 
 ## Technical Context
 
 **Language/Version**: Vanilla ES6+ JavaScript (no transpilation)
 
 **Primary Dependencies**: None new. Reads `REPO_INVENTORY` global (from
-`inventory-loader.js`) and display helpers from `main.js`. No CDN additions.
+`inventory-loader.js`) and the `repos` array built in `main.js`. No CDN
+additions.
 
 **Storage**: In-memory. Persistence by exporting JS from the inventory editor
 and pasting into `inventory-loader.js`.
@@ -35,22 +40,20 @@ impact — two string fields add negligible memory.
 **Constraints**: Offline-capable; `file://` compatible; dark theme via CSS
 custom properties; no CDN dependencies added.
 
-**Scale/Scope**: 4 files modified; 2 new fields; 27 repos updated in
-`inventory-loader.js`.
+**Scale/Scope**: 5 files modified total (4 originally planned + `main.js` for
+bug fix); 2 new fields; 27 repos updated in `inventory-loader.js`.
 
 ## Constitution Check
-
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 | Principle | Pre-Design | Post-Design | Notes |
 |---|---|---|---|
 | I. Client-Side Only | ✅ | ✅ | Browser-only; no server component |
-| II. Data as JS Files | ✅ | ✅ | Fields added to `inventory-loader.js`; exported as valid JS |
+| II. Data as JS Files | ✅ | ✅ | Fields in `inventory-loader.js`; exported as valid JS |
 | III. Vanilla JS — No Framework, No Build | ✅ | ✅ | No new deps; plain ES6+ |
 | IV. Script Load-Order Integrity | ✅ | ✅ | No new scripts; existing chain unchanged |
-| V. Cumulative, Strict Scoring | ✅ | ✅ | Fields are metadata only; scoring logic untouched |
+| V. Cumulative, Strict Scoring | ✅ | ✅ | Fields are metadata only; scoring untouched |
 
-All gates pass. No complexity violations.
+All gates pass. No violations.
 
 ## Project Structure
 
@@ -59,95 +62,84 @@ All gates pass. No complexity violations.
 ```text
 specs/003-asset-itowner-fields/
 ├── plan.md              # This file
-├── spec.md              # Feature specification
-├── research.md          # Phase 0 research findings
-├── data-model.md        # Phase 1 data model
-├── quickstart.md        # Phase 1 usage guide
+├── spec.md              # Feature specification (US1–US4)
+├── research.md          # Research findings (decisions 1–8)
+├── data-model.md        # Extended RepoEntry shape
+├── quickstart.md        # Usage guide
 ├── checklists/
-│   └── requirements.md  # Spec quality checklist
-└── tasks.md             # Phase 2 output (/speckit-tasks — not yet created)
+│   └── requirements.md  # Spec quality checklist (all ✅)
+└── tasks.md             # Task breakdown (US1–US3 ✅, US4 🔲)
 ```
 
 ### Source Code (repository root)
 
 ```text
 js/
-  inventory-loader.js    # Add assetId + itOwner to all 27 repos
-index.html               # Add ITOwner filter; show assetId/itOwner in radar/heatmap/gap
-assess.html              # Show assetId + itOwner in repo info bar
-inventory-editor.html    # Add form fields; update readFormValues() + renderNewForm()
+  inventory-loader.js    # assetId + itOwner on all 27 repos ✅
+  main.js                # repos map includes assetId + itOwner ✅ (bug fix)
+index.html               # ITOwner filter ✅; assetId filter 🔲; radar/heatmap/gap display ✅
+assess.html              # assetId + itOwner in repo info bar ✅
+inventory-editor.html    # form fields + readFormValues() + renderNewForm() ✅
 ```
-
-**Structure Decision**: Modification-only. No new files in the source tree.
-Four files changed; no new loader scripts; load order unaffected.
 
 ## UI Design
 
-### Inventory Editor — Metadata Form (updated)
+### Inventory Editor — Metadata Form (implemented ✅)
 
 ```
 Name *               [orders-api                  ]
 Display Name         [orders-api                  ]
 Repo Link            [https://github.com/...      ]
-Asset ID             [ASSET-001                   ]   ← NEW
-IT Owner             [Alice Chen                  ]   ← NEW
+Asset ID             [ASSET-001                   ]   ← added
+IT Owner             [Alice Chen                  ]   ← added
 [Type ▼]  [Tier ▼]
 Team *               [Commerce                    ]
 ```
 
-Both `assetId` and `itOwner` are optional text inputs placed between `repoLink`
-and the Type/Tier row.
-
-### Dashboard (index.html) — Filter Bar (updated)
+### Dashboard — Filter Bar (US3 ✅, US4 🔲)
 
 ```
-Type ▼   Team ▼   IT Owner ▼   Tier ▼   Search   [Dimensions/Sub-dim]   [Tabs]
+Type ▼   Team ▼   IT Owner ▼   Asset ID ▼   Tier ▼   Search   [tabs]
 ```
 
-IT Owner filter placed after Team, before Tier. Populated from unique non-empty
-`itOwner` values across all repos.
+US4 adds the **Asset ID** dropdown after IT Owner. Populated from unique
+non-empty `assetId` values. Works identically to the ITOwner filter.
 
-### Dashboard — Radar Card (updated)
+### Dashboard — Radar Card (implemented ✅)
 
 ```
 orders-api                               Avg 3.4/5
-[T1] [API] [Commerce] [Alice Chen]  ← itOwner badge added
-ASSET-001                           ← assetId if non-empty
+[T1] [API] [Commerce] [Alice Chen]
+ASSET-001
 ```
 
-### Dashboard — Heatmap (updated)
+### Dashboard — Heatmap (implemented ✅)
 
 ```
-| Repo | Tier | Type | Team | Asset ID  | IT Owner    | Avg | B&D | CQ | ... |
-| orders-api | T1 | API | Commerce | ASSET-001 | Alice Chen | 3.4 | ... |
+| Repo | Tier | Type | Team | Asset ID  | IT Owner    | Avg | ... |
 ```
 
-Two columns added after Team, before Avg.
-
-### Dashboard — Gap Analysis (updated)
+### Dashboard — Gap Analysis (implemented ✅)
 
 ```
-[orders-api API] [T1] [Alice Chen] [Build & Delivery] [CI/CD Maturity] [bar] 3 → 4
+[orders-api API] [T1] [Alice Chen] [dimension] [sub-dim] [bar] 3 → 4
 ```
 
-IT Owner added as a column after the tier badge.
-
-### Assessment Tool (assess.html) — Repo Info Bar (updated)
+### Assessment Tool — Info Bar (implemented ✅)
 
 ```
-orders-api  [API]  [T1]  Commerce  ASSET-001  Alice Chen  Current avg: 3.4 | Target: 3.8
+orders-api  [API]  [T1]  Commerce  Asset ID: ASSET-001  IT Owner: Alice Chen  Current avg: 3.4 | …
 ```
-
-`assetId` and `itOwner` appended as labeled spans.
 
 ## Interaction Model
 
-| Action | Mechanism |
-|---|---|
-| Filter by ITOwner | `<select>` in header → `getFiltered()` filters by `repo.itOwner ?? ''` |
-| Edit assetId | Text input in inventory editor form → `readFormValues()` → `saveRepo()` |
-| Edit itOwner | Text input in inventory editor form → `readFormValues()` → `saveRepo()` |
-| Export includes fields | `buildExportJS()` unchanged — `JSON.stringify(workingCopy)` includes all fields |
+| Action | Mechanism | Status |
+|---|---|---|
+| Filter by ITOwner | `<select id="filter-itowner">` → `getFiltered()` | ✅ |
+| Filter by AssetID | `<select id="filter-assetid">` → `getFiltered()` | 🔲 US4 |
+| Edit assetId | Text input in editor → `readFormValues()` → `saveRepo()` | ✅ |
+| Edit itOwner | Text input in editor → `readFormValues()` → `saveRepo()` | ✅ |
+| Export includes fields | `JSON.stringify(workingCopy)` includes all fields | ✅ |
 
 ## Validation
 
@@ -159,8 +151,29 @@ orders-api  [API]  [T1]  Commerce  ASSET-001  Alice Chen  Current avg: 3.4 | Tar
 ## Graceful Degradation
 
 All field reads use nullish coalescing: `repo.assetId ?? ''` and
-`repo.itOwner ?? ''`. This ensures repos loaded from older exports (without
-these keys) display cleanly without console errors.
+`repo.itOwner ?? ''`. The `repos` array in `main.js` now explicitly includes
+both fields via the repos map, making them available to all pages.
+
+## Key Implementation Notes — US4 (AssetID filter)
+
+US1–US3 notes already executed. Only US4 notes remain actionable.
+
+1. **`index.html` — filter bar HTML**: Add `<label>Asset ID</label>` and
+   `<select id="filter-assetid"><option value="all">All Assets</option></select>`
+   after the IT Owner filter group and before the Tier filter group.
+
+2. **`index.html` — `initFilters()`**: Derive unique sorted non-empty `assetId`
+   values from `repos`, append one `<option>` per value, wire a `change`
+   listener that calls `renderCurrentView()` — same pattern as the ITOwner
+   filter added in US3.
+
+3. **`index.html` — `getFiltered()`**: Add condition:
+   ```js
+   const assetid = document.getElementById('filter-assetid').value;
+   (assetid === 'all' || (r.assetId ?? '') === assetid) &&
+   ```
+
+4. **No other files need changes** for US4.
 
 ## Sample Data Scheme
 
@@ -192,40 +205,3 @@ these keys) display cleanly without console errors.
 | 23    | infrastructure-repo   | ASSET-024  | Erik Torres     |
 | 24    | ci-templates          | ASSET-025  | Erik Torres     |
 | 25    | monitoring-config     | ASSET-026  | Erik Torres     |
-
-(26 entries above — if inventory-loader.js has 27, adjust ASSET-027 for the
-27th repo; use same pattern.)
-
-## Key Implementation Notes
-
-1. **`inventory-loader.js`**: Add `assetId` and `itOwner` inline on each repo
-   object, between `repoLink` and `type`, to match the field ordering defined
-   in the data model. All 27 repos must be updated.
-
-2. **`inventory-editor.html` — `buildRepoForm()`**: Insert two `field()` calls
-   for `assetId` and `itOwner` after the `repoLink` field and before the
-   `form-row-2` div containing type/tier. Both are optional (no `*` marker).
-
-3. **`inventory-editor.html` — `readFormValues()`**: Add
-   `assetId: document.getElementById('f-assetId').value.trim()` and
-   `itOwner: document.getElementById('f-itOwner').value.trim()`.
-
-4. **`inventory-editor.html` — `renderNewForm()`**: The `defaults` object must
-   include `assetId: ''` and `itOwner: ''`.
-
-5. **`index.html` — filter init**: Add `<select id="filter-itowner">` to the
-   HTML filter bar. In `initFilters()`, populate it from unique non-empty
-   `itOwner` values. In `getFiltered()`, add the itOwner condition.
-
-6. **`index.html` — `renderRadarView()`**: Append an itOwner badge to
-   `radar-card-meta`; if `assetId` is non-empty, add a small label below.
-
-7. **`index.html` — `renderHeatmapView()`**: Add `Asset ID` and `IT Owner`
-   `<th>` elements and corresponding `<td>` cells in both depth modes.
-
-8. **`index.html` — `renderGapView()`**: Add `itOwner` cell in `.gap-row` after
-   the tier badge `<div>`.
-
-9. **`assess.html` — repo info bar**: In the `repoSelect` change handler, append
-   `assetId` and `itOwner` spans to the `info.innerHTML` for individual repos.
-   For org/tier baselines, omit (those have no assetId/itOwner).

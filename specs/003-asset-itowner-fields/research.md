@@ -104,12 +104,34 @@ user pastes an old export or manually edits the file.
 
 ---
 
-## Decision 7: No Changes to main.js, tiers-loader.js, dimensions-loader.js, assessment-loader.js, or rubric-editor.html
+## Decision 7: Files Changed
 
-**Decision**: Only these files change: `js/inventory-loader.js`,
-`inventory-editor.html`, `index.html`, `assess.html`. No other files touched.
+**Decision**: Files changed: `js/inventory-loader.js`, `js/main.js`,
+`inventory-editor.html`, `index.html`, `assess.html`.
 
-**Rationale**: The new fields are pure metadata — they carry no scoring weight,
-no tier computation, and no rubric relationship. `main.js` `overallScore()` and
-`dimScore()` are score-only helpers and need no awareness of `assetId`/`itOwner`.
-`rubric-editor.html` edits `ASSESSMENT`, not `REPO_INVENTORY`.
+**Rationale**: `main.js` builds the `repos` array with an explicit field map
+that only copies named properties from `REPO_INVENTORY` entries. The new
+`assetId` and `itOwner` fields must be added to this map explicitly, or they
+are invisible to all pages that read from `repos` (including `index.html` and
+`assess.html`). This was discovered as a bug after initial implementation.
+`tiers-loader.js`, `dimensions-loader.js`, `assessment-loader.js`, and
+`rubric-editor.html` remain untouched — those have no relationship to repo
+metadata fields.
+
+---
+
+## Decision 8: AssetID Filter (US4)
+
+**Decision**: Add an `Asset ID` `<select>` filter to `index.html` using the
+same pattern as the ITOwner filter added in US3 — after IT Owner, before Tier.
+Populated from unique sorted non-empty `assetId` values. Wired to
+`renderCurrentView()` on change. `getFiltered()` adds an exact-match condition.
+
+**Rationale**: US4 is a natural extension of US3. The ITOwner filter pattern is
+already in place; replicating it for AssetID requires 3 small additions all in
+`index.html`. No other file changes are needed because `assetId` is already in
+the `repos` map (added in the main.js bug fix) and in every view's data binding.
+
+**Alternatives considered**: Free-text search box for AssetID — rejected because
+all existing filters use exact-match `<select>` dropdowns; consistency is more
+important than partial-match flexibility for a 27-repo dataset.
