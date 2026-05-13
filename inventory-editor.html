@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaturityMap — Inventory Editor</title>
+  <script src="js/dimensions-loader.js"></script>
+  <script src="js/tiers-loader.js"></script>
+  <script src="js/inventory-loader.js"></script>
+  <script src="js/assessment-loader.js"></script>
+  <script src="js/main.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242836;
+      --border: #2e3348;
+      --text: #e1e4ed;
+      --text-muted: #8b90a0;
+      --accent: #6c8cff;
+      --accent-dim: rgba(108,140,255,0.15);
+      --level1: #ef4444; --level2: #f97316; --level3: #eab308; --level4: #22c55e; --level5: #06b6d4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; font-weight: 600; }
+    .header-links { display: flex; gap: 14px; margin-right: auto; }
+    header a { color: var(--accent); font-size: 13px; text-decoration: none; }
+    header a:hover { text-decoration: underline; }
+    .dirty-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px;
+      background: rgba(249,115,22,0.15); color: #f97316;
+      border: 1px solid rgba(249,115,22,0.3); white-space: nowrap;
+    }
+
+    /* ── Layout ── */
+    #layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-filters {
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sidebar-filters select {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      padding: 5px 10px; border-radius: 6px; font-size: 12px; outline: none; width: 100%;
+    }
+    .btn-add-repo {
+      display: block; width: calc(100% - 24px); margin: 8px 12px;
+      background: var(--accent-dim); color: var(--accent);
+      border: 1px solid rgba(108,140,255,0.3); border-radius: 7px;
+      padding: 7px 12px; font-size: 13px; font-weight: 600;
+      cursor: pointer; text-align: left; transition: background 0.15s;
+    }
+    .btn-add-repo:hover { background: rgba(108,140,255,0.25); opacity: 1; }
+    .repo-list { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
+    .repo-item {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; padding: 8px 14px; background: none; border: none; border-radius: 0;
+      color: var(--text-muted); font-size: 13px; cursor: pointer; text-align: left;
+      transition: background 0.1s, color 0.1s; gap: 8px;
+    }
+    .repo-item:hover { background: var(--surface2); color: var(--text); opacity: 1; }
+    .repo-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+    .repo-item-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .repo-item-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .tier-badge {
+      font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+    }
+    .tier-1 { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .tier-2 { background: rgba(249,115,22,0.15); color: #f97316; }
+    .tier-3 { background: rgba(234,179,8,0.15); color: #eab308; }
+    .repo-score { font-size: 11px; color: var(--text-muted); }
+    .list-empty { padding: 16px; font-size: 13px; color: var(--text-muted); text-align: center; }
+
+    /* ── Main panel ── */
+    #panel {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-empty {
+      color: var(--text-muted); font-size: 15px;
+      padding: 80px 40px; text-align: center;
+    }
+
+    /* ── Form ── */
+    .form-header {
+      padding: 20px 32px 0;
+      flex-shrink: 0;
+    }
+    .form-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .form-errors {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      color: #ef4444; border-radius: 6px; padding: 8px 12px;
+      font-size: 13px; margin-top: 10px;
+    }
+    .form-body { flex: 1; padding: 16px 32px 8px; overflow-y: visible; }
+    .form-section { margin-bottom: 20px; }
+    .form-field { margin-bottom: 14px; }
+    .form-field label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .req { color: var(--level1); }
+    .form-field input[type="text"],
+    .form-field input[type="url"],
+    .form-field select {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 12px; border-radius: 7px; font-size: 13px; outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-field input:focus, .form-field select:focus { border-color: var(--accent); }
+    .form-field input.invalid, .form-field select.invalid { border-color: var(--level1); }
+    .field-error { font-size: 12px; color: #ef4444; margin-top: 4px; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Score sections ── */
+    .scores-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; padding-top: 4px;
+    }
+    .scores-title { font-size: 14px; font-weight: 700; }
+    .expand-controls { display: flex; gap: 8px; }
+    .btn-sm {
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 5px; cursor: pointer;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); opacity: 1; }
+    .dim-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 9px; margin-bottom: 10px; overflow: hidden;
+    }
+    .dim-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; cursor: pointer; user-select: none;
+      background: var(--surface2); font-size: 13px; font-weight: 600;
+      transition: background 0.1s;
+    }
+    .dim-header:hover { background: #2d3245; }
+    .dim-chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; }
+    .dim-section.open .dim-chevron { transform: rotate(90deg); }
+    .dim-body { display: none; padding: 10px 14px; }
+    .dim-section.open .dim-body { display: block; }
+    .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+    .score-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .score-label { font-size: 12px; color: var(--text-muted); flex: 1; }
+    .score-input {
+      width: 60px; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 4px 8px; border-radius: 5px; font-size: 13px;
+      font-weight: 600; text-align: center; outline: none;
+    }
+    .score-input:focus { border-color: var(--accent); }
+    .score-input.invalid { border-color: var(--level1); }
+
+    /* ── Form actions ── */
+    .form-actions {
+      display: flex; gap: 10px; padding: 14px 32px 20px;
+      border-top: 1px solid var(--border); flex-shrink: 0;
+      background: var(--bg); position: sticky; bottom: 0;
+    }
+    .btn-save { background: var(--accent); color: #fff; }
+    .btn-delete {
+      margin-left: auto; background: rgba(239,68,68,0.1); color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+    .btn-delete:hover { background: rgba(239,68,68,0.2); opacity: 1; }
+
+    /* ── Generic buttons ── */
+    button {
+      border: none; padding: 8px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    button.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+    /* ── Export modal ── */
+    #export-fallback {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+      display: flex; align-items: center; justify-content: center; z-index: 200;
+    }
+    .export-modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; width: 720px; max-width: 90vw; display: flex; flex-direction: column; gap: 12px;
+    }
+    .export-modal h2 { font-size: 16px; font-weight: 600; }
+    .export-modal p { font-size: 13px; color: var(--text-muted); }
+    .export-modal code { font-family: monospace; color: var(--accent); font-size: 12px; }
+    .export-modal textarea {
+      height: 300px; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: 'Courier New', monospace; font-size: 12px;
+      padding: 12px; border-radius: 6px; resize: vertical; outline: none;
+    }
+    .export-modal-footer { display: flex; justify-content: flex-end; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MaturityMap — Inventory Editor</h1>
+  <div class="header-links">
+    <a href="index.html">← Dashboard</a>
+    <a href="assess.html">Assessment Tool</a>
+    <a href="rubric-editor.html">Rubric Editor</a>
+  </div>
+  <span id="dirty-badge" class="dirty-badge hidden">● Unsaved changes</span>
+  <button class="secondary" id="btn-discard-all">Discard All</button>
+  <button class="secondary" id="btn-copy-js">Copy JS</button>
+  <button id="btn-download-js">Download JS</button>
+</header>
+
+<div id="layout">
+  <aside id="sidebar"></aside>
+  <main id="panel">
+    <div class="panel-empty">Select a repo from the sidebar to view and edit it, or click "+ Add Repo" to add a new one.</div>
+  </main>
+</div>
+
+<div id="export-fallback" class="hidden">
+  <div class="export-modal">
+    <h2>Copy JavaScript</h2>
+    <p>Clipboard access was denied. Select all the text below, copy it, then paste it into
+      <code>js/inventory-loader.js</code> replacing the entire <code>var REPO_INVENTORY = [...];</code> block.</p>
+    <textarea id="export-textarea" readonly spellcheck="false"></textarea>
+    <div class="export-modal-footer">
+      <button class="secondary" id="btn-close-export">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── State ─────────────────────────────────────────────────────────────────
+  let workingCopy = JSON.parse(JSON.stringify(REPO_INVENTORY));
+  let isDirty     = false;
+  let selectedIdx = null;
+  let isNewRepo   = false;
+  let filterType  = '';
+  let filterTeam  = '';
+
+  const sidebar    = document.getElementById('sidebar');
+  const panel      = document.getElementById('panel');
+  const dirtyBadge = document.getElementById('dirty-badge');
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setDirty(val) {
+    isDirty = val;
+    dirtyBadge.classList.toggle('hidden', !val);
+  }
+
+  function emptyPanel() {
+    panel.innerHTML = '<div class="panel-empty">Select a repo from the sidebar to view and edit it, or click "+ Add Repo" to add a new one.</div>';
+  }
+
+  // ── Sidebar ────────────────────────────────────────────────────────────────
+  function renderSidebar() {
+    const teams = [...new Set(workingCopy.map(r => r.team).filter(Boolean))].sort();
+
+    let html = `<div class="sidebar-filters">`;
+    html += `<select id="filter-type">
+      <option value="">All Types</option>
+      ${REPO_TYPES.map(t => `<option value="${escapeHtml(t)}"${filterType === t ? ' selected' : ''}>${escapeHtml(t)}</option>`).join('')}
+    </select>`;
+    html += `<select id="filter-team">
+      <option value="">All Teams</option>
+      ${teams.map(t => `<option value="${escapeHtml(t)}"${filterTeam === t ? ' selected' : ''}>${escapeHtml(t)}</option>`).join('')}
+    </select>`;
+    html += `</div>`;
+
+    html += `<button class="btn-add-repo" id="btn-add-repo">+ Add Repo</button>`;
+
+    const filtered = workingCopy
+      .map((repo, idx) => ({ repo, idx }))
+      .filter(({ repo }) =>
+        (!filterType || repo.type === filterType) &&
+        (!filterTeam || repo.team === filterTeam)
+      );
+
+    html += `<div class="repo-list">`;
+    if (filtered.length === 0) {
+      html += `<div class="list-empty">No repos match the filter.</div>`;
+    } else {
+      filtered.forEach(({ repo, idx }) => {
+        const score = overallScore(repo.current).toFixed(1);
+        const active = selectedIdx === idx ? ' active' : '';
+        html += `<button class="repo-item${active}" data-idx="${idx}">
+          <span class="repo-item-name">${escapeHtml(repo.name)}</span>
+          <span class="repo-item-meta">
+            <span class="tier-badge tier-${repo.tier}">T${repo.tier}</span>
+            <span class="repo-score">${score}</span>
+          </span>
+        </button>`;
+      });
+    }
+    html += `</div>`;
+
+    sidebar.innerHTML = html;
+
+    document.getElementById('filter-type').addEventListener('change', e => {
+      filterType = e.target.value; renderSidebar();
+    });
+    document.getElementById('filter-team').addEventListener('change', e => {
+      filterTeam = e.target.value; renderSidebar();
+    });
+    document.getElementById('btn-add-repo').addEventListener('click', renderNewForm);
+    sidebar.querySelectorAll('.repo-item').forEach(btn => {
+      btn.addEventListener('click', () => selectRepo(parseInt(btn.dataset.idx)));
+    });
+  }
+
+  function selectRepo(idx) {
+    selectedIdx = idx;
+    isNewRepo = false;
+    renderSidebar();
+    renderPanel(idx);
+  }
+
+  // ── Panel ──────────────────────────────────────────────────────────────────
+  function renderPanel(idx) {
+    if (idx === null || idx === undefined || idx < 0 || idx >= workingCopy.length) {
+      emptyPanel(); return;
+    }
+    panel.innerHTML = buildRepoForm(workingCopy[idx], false);
+    attachFormHandlers(false);
+  }
+
+  function renderNewForm() {
+    isNewRepo = true;
+    selectedIdx = null;
+    renderSidebar();
+    const defaults = {
+      name: '', displayName: '', repoLink: '',
+      type: REPO_TYPES[0], team: '', tier: 2, current: {}
+    };
+    DIMENSIONS.forEach(d => d.subs.forEach(s => { defaults.current[s.key] = 1; }));
+    panel.innerHTML = buildRepoForm(defaults, true);
+    attachFormHandlers(true);
+  }
+
+  function buildRepoForm(repo, isNew) {
+    let html = `<div class="form-header">
+      <h2>${isNew ? 'New Repo' : escapeHtml(repo.name)}</h2>
+      <div id="form-errors" class="form-errors hidden"></div>
+    </div>`;
+
+    html += `<div class="form-body">`;
+
+    // Metadata
+    html += `<div class="form-section">`;
+    html += field('Name', 'f-name',
+      `<input type="text" id="f-name" value="${escapeHtml(repo.name)}" placeholder="e.g. orders-api">`, true);
+    html += field('Display Name', 'f-displayName',
+      `<input type="text" id="f-displayName" value="${escapeHtml(repo.displayName)}" placeholder="Defaults to Name">`, false);
+    html += field('Repo Link', 'f-repoLink',
+      `<input type="text" id="f-repoLink" value="${escapeHtml(repo.repoLink)}" placeholder="https://github.com/...">`, false);
+    html += `<div class="form-row-2">`;
+    const typeOpts = REPO_TYPES.map(t =>
+      `<option value="${escapeHtml(t)}"${repo.type === t ? ' selected' : ''}>${escapeHtml(t)}</option>`).join('');
+    html += field('Type', 'f-type', `<select id="f-type">${typeOpts}</select>`, true);
+    const tierOpts = [1,2,3].map(t =>
+      `<option value="${t}"${repo.tier === t ? ' selected' : ''}>Tier ${t}</option>`).join('');
+    html += field('Tier', 'f-tier', `<select id="f-tier">${tierOpts}</select>`, true);
+    html += `</div>`;
+    html += field('Team', 'f-team',
+      `<input type="text" id="f-team" value="${escapeHtml(repo.team)}" placeholder="e.g. Platform">`, true);
+    html += `</div>`; // form-section
+
+    // Scores
+    html += `<div class="scores-header">
+      <span class="scores-title">Maturity Scores</span>
+      <div class="expand-controls">
+        <button class="btn-sm" id="btn-expand-all">Expand all</button>
+        <button class="btn-sm" id="btn-collapse-all">Collapse all</button>
+      </div>
+    </div>`;
+
+    DIMENSIONS.forEach((dim, di) => {
+      html += `<div class="dim-section${di === 0 ? ' open' : ''}" data-dim="${dim.key}">`;
+      html += `<div class="dim-header"><span class="dim-chevron">▶</span>${escapeHtml(dim.label)}</div>`;
+      html += `<div class="dim-body"><div class="score-grid">`;
+      dim.subs.forEach(sub => {
+        const val = repo.current[sub.key] ?? 1;
+        html += `<div class="score-row">
+          <label class="score-label" for="f-${sub.key}">${escapeHtml(sub.label)}</label>
+          <input type="number" class="score-input" id="f-${sub.key}"
+            data-sub="${sub.key}" value="${val}" min="1" max="5" step="1">
+        </div>`;
+      });
+      html += `</div></div></div>`;
+    });
+
+    html += `</div>`; // form-body
+
+    html += `<div class="form-actions">
+      <button class="btn-save" id="btn-save">${isNew ? 'Add Repo' : 'Save'}</button>
+      <button class="secondary" id="btn-discard">Discard</button>
+      ${!isNew ? '<button class="btn-delete" id="btn-delete">Delete</button>' : ''}
+    </div>`;
+
+    return html;
+  }
+
+  function field(label, id, inputHtml, required) {
+    return `<div class="form-field">
+      <label for="${id}">${escapeHtml(label)}${required ? ' <span class="req">*</span>' : ''}</label>
+      ${inputHtml}
+      <div class="field-error hidden" id="err-${id}"></div>
+    </div>`;
+  }
+
+  function attachFormHandlers(isNew) {
+    panel.querySelectorAll('.dim-header').forEach(h => {
+      h.addEventListener('click', () => h.closest('.dim-section').classList.toggle('open'));
+    });
+    document.getElementById('btn-expand-all')?.addEventListener('click', () => {
+      panel.querySelectorAll('.dim-section').forEach(s => s.classList.add('open'));
+    });
+    document.getElementById('btn-collapse-all')?.addEventListener('click', () => {
+      panel.querySelectorAll('.dim-section').forEach(s => s.classList.remove('open'));
+    });
+    document.getElementById('btn-save').addEventListener('click', () => {
+      isNew ? saveNewRepo() : saveRepo();
+    });
+    document.getElementById('btn-discard').addEventListener('click', discardRepo);
+    document.getElementById('btn-delete')?.addEventListener('click', deleteRepo);
+  }
+
+  // ── Form I/O ───────────────────────────────────────────────────────────────
+  function readFormValues() {
+    const name = document.getElementById('f-name').value.trim();
+    const current = {};
+    DIMENSIONS.forEach(d => d.subs.forEach(s => {
+      const el = document.getElementById('f-' + s.key);
+      current[s.key] = el ? (parseInt(el.value) || 1) : 1;
+    }));
+    return {
+      name,
+      displayName: document.getElementById('f-displayName').value.trim() || name,
+      repoLink:    document.getElementById('f-repoLink').value.trim(),
+      type:        document.getElementById('f-type').value,
+      team:        document.getElementById('f-team').value.trim(),
+      tier:        parseInt(document.getElementById('f-tier').value),
+      current
+    };
+  }
+
+  function clearErrors() {
+    panel.querySelectorAll('.field-error').forEach(el => { el.textContent = ''; el.classList.add('hidden'); });
+    const fe = document.getElementById('form-errors');
+    if (fe) { fe.textContent = ''; fe.classList.add('hidden'); }
+    panel.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+  }
+
+  function fieldError(fieldId, msg) {
+    const input = document.getElementById(fieldId);
+    if (input) input.classList.add('invalid');
+    const el = document.getElementById('err-' + fieldId);
+    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+  }
+
+  function formError(msg) {
+    const fe = document.getElementById('form-errors');
+    if (fe) { fe.textContent = msg; fe.classList.remove('hidden'); }
+  }
+
+  function validateValues(values, excludeIdx) {
+    clearErrors();
+    let valid = true;
+    if (!values.name) {
+      fieldError('f-name', 'Name is required'); valid = false;
+    } else {
+      const dup = workingCopy.findIndex((r, i) => i !== excludeIdx &&
+        r.name.toLowerCase() === values.name.toLowerCase());
+      if (dup !== -1) {
+        fieldError('f-name', `A repo named "${values.name}" already exists`); valid = false;
+      }
+    }
+    if (!values.team) {
+      fieldError('f-team', 'Team is required'); valid = false;
+    }
+    const badScores = [];
+    DIMENSIONS.forEach(d => d.subs.forEach(s => {
+      const v = values.current[s.key];
+      if (!Number.isInteger(v) || v < 1 || v > 5) {
+        document.getElementById('f-' + s.key)?.classList.add('invalid');
+        badScores.push(s.label);
+      }
+    }));
+    if (badScores.length > 0) {
+      formError(`Scores must be integers 1–5. Fix: ${badScores.slice(0,3).join(', ')}${badScores.length > 3 ? '…' : ''}`);
+      valid = false;
+    }
+    return valid;
+  }
+
+  // ── Save / Discard / Delete ────────────────────────────────────────────────
+  function saveRepo() {
+    const values = readFormValues();
+    if (!validateValues(values, selectedIdx)) return;
+    workingCopy[selectedIdx] = values;
+    setDirty(true);
+    renderSidebar();
+    renderPanel(selectedIdx);
+  }
+
+  function saveNewRepo() {
+    const values = readFormValues();
+    if (!validateValues(values, -1)) return;
+    workingCopy.push(values);
+    selectedIdx = workingCopy.length - 1;
+    isNewRepo = false;
+    setDirty(true);
+    renderSidebar();
+    renderPanel(selectedIdx);
+  }
+
+  function discardRepo() {
+    if (isNewRepo) {
+      isNewRepo = false;
+      selectedIdx = null;
+      renderSidebar();
+      emptyPanel();
+    } else {
+      renderPanel(selectedIdx);
+    }
+  }
+
+  function deleteRepo() {
+    const name = workingCopy[selectedIdx]?.name || 'this repo';
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    workingCopy.splice(selectedIdx, 1);
+    selectedIdx = null;
+    isNewRepo = false;
+    setDirty(true);
+    renderSidebar();
+    emptyPanel();
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────
+  function buildExportJS() {
+    return `var REPO_INVENTORY = ${JSON.stringify(workingCopy, null, 2)};\n`;
+  }
+
+  function showExportFallback(js) {
+    const ta = document.getElementById('export-textarea');
+    ta.value = js;
+    document.getElementById('export-fallback').classList.remove('hidden');
+    setTimeout(() => ta.select(), 50);
+  }
+
+  document.getElementById('btn-copy-js').addEventListener('click', () => {
+    const js = buildExportJS();
+    const btn = document.getElementById('btn-copy-js');
+    navigator.clipboard.writeText(js).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy JS'; }, 2000);
+    }).catch(() => showExportFallback(js));
+  });
+
+  document.getElementById('btn-download-js').addEventListener('click', () => {
+    const js = buildExportJS();
+    const date = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([js], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `inventory-${date}.js`; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-close-export').addEventListener('click', () => {
+    document.getElementById('export-fallback').classList.add('hidden');
+  });
+
+  document.getElementById('btn-discard-all').addEventListener('click', () => {
+    if (isDirty && !confirm('Discard all unsaved changes?')) return;
+    workingCopy = JSON.parse(JSON.stringify(REPO_INVENTORY));
+    selectedIdx = null; isNewRepo = false; filterType = ''; filterTeam = '';
+    setDirty(false);
+    renderSidebar();
+    emptyPanel();
+  });
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  renderSidebar();
+</script>
+
+</body>
+</html>
