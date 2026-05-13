@@ -50,6 +50,8 @@ const repoDefinitions = REPO_INVENTORY;
 // ============================================================
 const repos = repoDefinitions.map(def => ({
   name: def.name,
+  assetId: def.assetId ?? '',
+  itOwner: def.itOwner ?? '',
   type: def.type,
   team: def.team,
   tier: def.tier,

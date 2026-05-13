@@ -368,7 +368,7 @@
     selectedIdx = null;
     renderSidebar();
     const defaults = {
-      name: '', displayName: '', repoLink: '',
+      name: '', displayName: '', repoLink: '', assetId: '', itOwner: '',
       type: REPO_TYPES[0], team: '', tier: 2, current: {}
     };
     DIMENSIONS.forEach(d => d.subs.forEach(s => { defaults.current[s.key] = 1; }));
@@ -392,6 +392,10 @@
       `<input type="text" id="f-displayName" value="${escapeHtml(repo.displayName)}" placeholder="Defaults to Name">`, false);
     html += field('Repo Link', 'f-repoLink',
       `<input type="text" id="f-repoLink" value="${escapeHtml(repo.repoLink)}" placeholder="https://github.com/...">`, false);
+    html += field('Asset ID', 'f-assetId',
+      `<input type="text" id="f-assetId" value="${escapeHtml(repo.assetId ?? '')}" placeholder="e.g. ASSET-001">`, false);
+    html += field('IT Owner', 'f-itOwner',
+      `<input type="text" id="f-itOwner" value="${escapeHtml(repo.itOwner ?? '')}" placeholder="e.g. Alice Chen">`, false);
     html += `<div class="form-row-2">`;
     const typeOpts = REPO_TYPES.map(t =>
       `<option value="${escapeHtml(t)}"${repo.type === t ? ' selected' : ''}>${escapeHtml(t)}</option>`).join('');
@@ -476,6 +480,8 @@
       name,
       displayName: document.getElementById('f-displayName').value.trim() || name,
       repoLink:    document.getElementById('f-repoLink').value.trim(),
+      assetId:     document.getElementById('f-assetId').value.trim(),
+      itOwner:     document.getElementById('f-itOwner').value.trim(),
       type:        document.getElementById('f-type').value,
       team:        document.getElementById('f-team').value.trim(),
       tier:        parseInt(document.getElementById('f-tier').value),

@@ -56,6 +56,22 @@ As a dashboard user, I want to filter the repo list by ITOwner so I can view all
 
 ---
 
+### User Story 4 — Filter or Search by AssetID (Priority: P4)
+
+As a dashboard user, I want to filter the repo list by AssetID so I can view all repos under a specific asset.
+
+**Why this priority**: Once AssetID is a first-class field, filtering by it unlocks organization-based reporting without any additional data changes.
+
+**Independent Test**: Open `index.html`, use a filter to select an AssetID value — only repos grouped by that Asset ID appear in all views (Radar, Heatmap, Gap Analysis, etc.).
+
+**Acceptance Scenarios**:
+
+1. **Given** repos with various AssetID values, **When** I select an AssetID in the filter bar, **Then** only repos with that AssetID are shown.
+2. **Given** the AssetID filter is set, **When** I navigate between views (Radar, Heatmap, Gap), **Then** the filter persists across views.
+3. **Given** no repos match the selected AssetID, **Then** the view shows an empty state without errors.
+
+---
+
 ### Edge Cases
 
 - What happens when AssetID or ITOwner contains special characters (quotes, ampersands, angle brackets)? → Displayed safely without HTML injection.

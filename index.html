@@ -270,7 +270,7 @@
       border-radius: 8px;
       padding: 10px 16px;
       display: grid;
-      grid-template-columns: 180px 40px 140px 120px 1fr 70px;
+      grid-template-columns: 180px 40px 120px 140px 120px 1fr 70px;
       align-items: center;
       gap: 12px;
       font-size: 13px;
@@ -389,6 +389,9 @@
     <label>Team</label>
     <select id="filter-team"><option value="all">All Teams</option></select>
 
+    <label>IT Owner</label>
+    <select id="filter-itowner"><option value="all">All Owners</option></select>
+
     <label>Tier</label>
     <select id="filter-tier">
       <option value="all">All Tiers</option>
@@ -474,11 +477,13 @@ function tierBadge(tier) {
 function getFiltered() {
   const type = document.getElementById('filter-type').value;
   const team = document.getElementById('filter-team').value;
+  const itowner = document.getElementById('filter-itowner').value;
   const tier = document.getElementById('filter-tier').value;
   const search = document.getElementById('filter-search').value.toLowerCase();
   return repos.filter(r =>
     (type === 'all' || r.type === type) &&
     (team === 'all' || r.team === team) &&
+    (itowner === 'all' || (r.itOwner ?? '') === itowner) &&
     (tier === 'all' || r.tier === parseInt(tier)) &&
     (search === '' || r.name.toLowerCase().includes(search))
   );
@@ -504,12 +509,15 @@ function getActiveItems() {
 function initFilters() {
   const types = [...new Set(repos.map(r => r.type))].sort();
   const teams = [...new Set(repos.map(r => r.team))].sort();
+  const owners = [...new Set(repos.map(r => r.itOwner ?? '').filter(Boolean))].sort();
   const typeSelect = document.getElementById('filter-type');
   const teamSelect = document.getElementById('filter-team');
+  const ownerSelect = document.getElementById('filter-itowner');
   const dimSelect = document.getElementById('filter-dimension');
 
   types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; typeSelect.appendChild(o); });
   teams.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; teamSelect.appendChild(o); });
+  owners.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; ownerSelect.appendChild(o); });
   DIMENSIONS.forEach(d => { const o = document.createElement('option'); o.value = d.key; o.textContent = d.label; dimSelect.appendChild(o); });
 }
 
@@ -616,7 +624,9 @@ function renderRadarView(filtered) {
             ${tierBadge(repo.tier)}
             <span class="badge badge-type">${repo.type}</span>
             <span class="badge badge-team">${repo.team}</span>
+            ${repo.itOwner ? `<span class="badge badge-team">${repo.itOwner}</span>` : ''}
           </div>
+          ${repo.assetId ? `<div style="font-size:10px;color:var(--text-muted);margin-top:2px">${repo.assetId}</div>` : ''}
         </div>
         <div class="avg-score">Avg <strong>${avgScore}</strong>/5</div>
       </div>
@@ -725,13 +735,15 @@ function renderHeatmapView(filtered) {
           <td class="repo-type-cell">${tierBadge(repo.tier)}</td>
           <td class="repo-type-cell">${repo.type}</td>
           <td class="repo-type-cell">${repo.team}</td>
+          <td class="repo-type-cell">${repo.assetId ?? ''}</td>
+          <td class="repo-type-cell">${repo.itOwner ?? ''}</td>
           <td style="font-weight:600;color:${levelColor(overallScore(repo.current))}">${overallScore(repo.current).toFixed(1)}</td>
           ${cells}
         </tr>`;
       }).join('');
 
     container.innerHTML = `<table class="heatmap-table">
-      <thead><tr><th>Repo</th><th>Tier</th><th>Type</th><th>Team</th><th>Avg</th>${dimHeaders}</tr></thead>
+      <thead><tr><th>Repo</th><th>Tier</th><th>Type</th><th>Team</th><th>Asset ID</th><th>IT Owner</th><th>Avg</th>${dimHeaders}</tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
   } else {
@@ -766,6 +778,8 @@ function renderHeatmapView(filtered) {
           <td class="repo-type-cell">${tierBadge(repo.tier)}</td>
           <td class="repo-type-cell">${repo.type}</td>
           <td class="repo-type-cell">${repo.team}</td>
+          <td class="repo-type-cell">${repo.assetId ?? ''}</td>
+          <td class="repo-type-cell">${repo.itOwner ?? ''}</td>
           <td style="font-weight:600;color:${levelColor(overallScore(repo.current))}">${overallScore(repo.current).toFixed(1)}</td>
           ${cells}
         </tr>`;
@@ -773,7 +787,7 @@ function renderHeatmapView(filtered) {
 
     container.innerHTML = `<table class="heatmap-table">
       <thead>
-        <tr><th rowspan="2">Repo</th><th rowspan="2">Tier</th><th rowspan="2">Type</th><th rowspan="2">Team</th><th rowspan="2">Avg</th>${groupHeaders}</tr>
+        <tr><th rowspan="2">Repo</th><th rowspan="2">Tier</th><th rowspan="2">Type</th><th rowspan="2">Team</th><th rowspan="2">Asset ID</th><th rowspan="2">IT Owner</th><th rowspan="2">Avg</th>${groupHeaders}</tr>
         <tr>${subHeaders}</tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -793,7 +807,7 @@ function renderGapView(filtered) {
         const tar = dimScore(repo.target, d);
         const gap = tar - cur;
         if (gap > 0.1) {
-          gaps.push({ repo: repo.name, type: repo.type, tier: repo.tier, dim: d.label, sub: '', current: cur, target: tar, gap });
+          gaps.push({ repo: repo.name, type: repo.type, tier: repo.tier, itOwner: repo.itOwner ?? '', dim: d.label, sub: '', current: cur, target: tar, gap });
         }
       });
     });
@@ -807,7 +821,7 @@ function renderGapView(filtered) {
           const tar = repo.target[s.key] || 0;
           const gap = tar - cur;
           if (gap > 0) {
-            gaps.push({ repo: repo.name, type: repo.type, tier: repo.tier, dim: d.label, sub: s.label, current: cur, target: tar, gap });
+            gaps.push({ repo: repo.name, type: repo.type, tier: repo.tier, itOwner: repo.itOwner ?? '', dim: d.label, sub: s.label, current: cur, target: tar, gap });
           }
         });
       });
@@ -820,6 +834,7 @@ function renderGapView(filtered) {
     <div class="gap-row">
       <div class="gap-row-repo">${g.repo} <span style="font-weight:400;color:var(--text-muted);font-size:11px">${g.type}</span></div>
       <div>${tierBadge(g.tier)}</div>
+      <div class="gap-row-sub" style="color:var(--text-muted)">${g.itOwner || ''}</div>
       <div class="gap-row-dim">${g.dim}</div>
       <div class="gap-row-sub">${g.sub}</div>
       <div>
@@ -868,6 +883,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
 document.querySelectorAll('.depth-btn').forEach(b => b.addEventListener('click', () => setDepth(b.dataset.depth)));
 document.getElementById('filter-type').addEventListener('change', renderCurrentView);
 document.getElementById('filter-team').addEventListener('change', renderCurrentView);
+document.getElementById('filter-itowner').addEventListener('change', renderCurrentView);
 document.getElementById('filter-tier').addEventListener('change', renderCurrentView);
 document.getElementById('filter-search').addEventListener('input', renderCurrentView);
 document.getElementById('filter-dimension').addEventListener('change', renderCurrentView);
