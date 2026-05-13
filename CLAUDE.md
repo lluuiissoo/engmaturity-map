@@ -51,3 +51,9 @@ Each loader defines globals that subsequent scripts depend on:
 - Adjust tier targets or org minimums: `js/tiers-loader.js`
 - Modify assessment rubrics: `js/assessment-loader.js`
 - Add/change dimensions: `js/dimensions-loader.js` (rarely needed)
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+at `specs/003-asset-itowner-fields/plan.md`.
+<!-- SPECKIT END -->

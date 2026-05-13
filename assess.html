@@ -520,6 +520,8 @@ repoSelect.addEventListener('change', () => {
       <span class="badge badge-type">${selectedRepo.type}</span>
       <span class="badge badge-tier-${selectedRepo.tier}">Tier ${selectedRepo.tier}</span>
       <span style="color:var(--text-muted);font-size:12px">${selectedRepo.team}</span>
+      ${selectedRepo.assetId ? `<span style="color:var(--text-muted);font-size:12px">Asset ID: <strong style="color:var(--text)">${selectedRepo.assetId}</strong></span>` : ''}
+      ${selectedRepo.itOwner ? `<span style="color:var(--text-muted);font-size:12px">IT Owner: <strong style="color:var(--text)">${selectedRepo.itOwner}</strong></span>` : ''}
       <span style="color:var(--text-muted);font-size:12px">Current avg: ${overallScore(selectedRepo.current).toFixed(1)} | Target avg: ${overallScore(selectedRepo.target).toFixed(1)}</span>
     `;
     prePopulateFromCurrent(selectedRepo);
