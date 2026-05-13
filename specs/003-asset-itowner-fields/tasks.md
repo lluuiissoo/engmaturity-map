@@ -119,9 +119,9 @@ AssetID appears in Radar, By Type, By Dimension, Heatmap, and Gap Analysis.
 Select "All Assets" — all repos return. Combine with the IT Owner filter — only
 repos matching both criteria are shown. No console errors.
 
-- [ ] T013 [US4] In `index.html`, add `<label>Asset ID</label>` and `<select id="filter-assetid"><option value="all">All Assets</option></select>` to the `.filters` div in `<header>`, positioned after the IT Owner filter group and before the Tier filter group
-- [ ] T014 [US4] In `index.html`, populate the AssetID `<select>` in `initFilters()`: derive unique, sorted, non-empty `assetId` values from `repos`, append one `<option>` per value, and wire a `change` event listener that calls `renderCurrentView()` (same pattern as the ITOwner filter added in T011)
-- [ ] T015 [US4] In `index.html`, add the AssetID condition to `getFiltered()`: `(assetid === 'all' || (r.assetId ?? '') === assetid)` where `assetid` is read from `document.getElementById('filter-assetid').value`
+- [x] T013 [US4] In `index.html`, add `<label>Asset ID</label>` and `<select id="filter-assetid"><option value="all">All Assets</option></select>` to the `.filters` div in `<header>`, positioned after the IT Owner filter group and before the Tier filter group
+- [x] T014 [US4] In `index.html`, populate the AssetID `<select>` in `initFilters()`: derive unique, sorted, non-empty `assetId` values from `repos`, append one `<option>` per value, and wire a `change` event listener that calls `renderCurrentView()` (same pattern as the ITOwner filter added in T011)
+- [x] T015 [US4] In `index.html`, add the AssetID condition to `getFiltered()`: `(assetid === 'all' || (r.assetId ?? '') === assetid)` where `assetid` is read from `document.getElementById('filter-assetid').value`
 
 **Checkpoint**: AssetID filter applied to Radar view — only the one matching repo
 is shown. Switch to Heatmap — same repo shown. Combine with IT Owner filter —
@@ -131,7 +131,7 @@ intersection of both filters is applied.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T016 Manual browser verification: (a) open `index.html` — IT Owner and Asset ID filters both work and narrow all views; assetId and itOwner visible in radar cards and heatmap columns; (b) open `assess.html`, select a repo — info bar shows Asset ID and IT Owner; (c) open `inventory-editor.html`, edit assetId/itOwner, save, export JS, paste into `js/inventory-loader.js`, reload `index.html` — updated values visible; (d) add a new repo with blank assetId/itOwner — no errors; (e) open browser console on all three pages — zero errors
+- [x] T016 Manual browser verification: (a) open `index.html` — IT Owner and Asset ID filters both work and narrow all views; assetId and itOwner visible in radar cards and heatmap columns; (b) open `assess.html`, select a repo — info bar shows Asset ID and IT Owner; (c) open `inventory-editor.html`, edit assetId/itOwner, save, export JS, paste into `js/inventory-loader.js`, reload `index.html` — updated values visible; (d) add a new repo with blank assetId/itOwner — no errors; (e) open browser console on all three pages — zero errors
 
 ---
 

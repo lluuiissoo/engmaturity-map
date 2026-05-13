@@ -392,6 +392,9 @@
     <label>IT Owner</label>
     <select id="filter-itowner"><option value="all">All Owners</option></select>
 
+    <label>Asset ID</label>
+    <select id="filter-assetid"><option value="all">All Assets</option></select>
+
     <label>Tier</label>
     <select id="filter-tier">
       <option value="all">All Tiers</option>
@@ -478,12 +481,14 @@ function getFiltered() {
   const type = document.getElementById('filter-type').value;
   const team = document.getElementById('filter-team').value;
   const itowner = document.getElementById('filter-itowner').value;
+  const assetid = document.getElementById('filter-assetid').value;
   const tier = document.getElementById('filter-tier').value;
   const search = document.getElementById('filter-search').value.toLowerCase();
   return repos.filter(r =>
     (type === 'all' || r.type === type) &&
     (team === 'all' || r.team === team) &&
     (itowner === 'all' || (r.itOwner ?? '') === itowner) &&
+    (assetid === 'all' || (r.assetId ?? '') === assetid) &&
     (tier === 'all' || r.tier === parseInt(tier)) &&
     (search === '' || r.name.toLowerCase().includes(search))
   );
@@ -510,14 +515,17 @@ function initFilters() {
   const types = [...new Set(repos.map(r => r.type))].sort();
   const teams = [...new Set(repos.map(r => r.team))].sort();
   const owners = [...new Set(repos.map(r => r.itOwner ?? '').filter(Boolean))].sort();
+  const assets = [...new Set(repos.map(r => r.assetId ?? '').filter(Boolean))].sort();
   const typeSelect = document.getElementById('filter-type');
   const teamSelect = document.getElementById('filter-team');
   const ownerSelect = document.getElementById('filter-itowner');
+  const assetSelect = document.getElementById('filter-assetid');
   const dimSelect = document.getElementById('filter-dimension');
 
   types.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; typeSelect.appendChild(o); });
   teams.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; teamSelect.appendChild(o); });
   owners.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; ownerSelect.appendChild(o); });
+  assets.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; assetSelect.appendChild(o); });
   DIMENSIONS.forEach(d => { const o = document.createElement('option'); o.value = d.key; o.textContent = d.label; dimSelect.appendChild(o); });
 }
 
@@ -884,6 +892,7 @@ document.querySelectorAll('.depth-btn').forEach(b => b.addEventListener('click',
 document.getElementById('filter-type').addEventListener('change', renderCurrentView);
 document.getElementById('filter-team').addEventListener('change', renderCurrentView);
 document.getElementById('filter-itowner').addEventListener('change', renderCurrentView);
+document.getElementById('filter-assetid').addEventListener('change', renderCurrentView);
 document.getElementById('filter-tier').addEventListener('change', renderCurrentView);
 document.getElementById('filter-search').addEventListener('input', renderCurrentView);
 document.getElementById('filter-dimension').addEventListener('change', renderCurrentView);
