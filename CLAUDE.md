@@ -55,5 +55,5 @@ Each loader defines globals that subsequent scripts depend on:
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at `specs/001-assessment-rubric-editor/plan.md`.
+at `specs/002-inventory-editor/plan.md`.
 <!-- SPECKIT END -->
